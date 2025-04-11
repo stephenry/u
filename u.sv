@@ -57,8 +57,8 @@ module u #(
 //   . |             .                           .
 //  14 |   0111_1111_1111_1111         1000_0000_0000_0000
 //
-//  Circuit does not admit the all-one or all-zero bitvector has
-//  this is not considered to be a valid unary encoding. 
+//  Circuit does not admit the all-one or all-zero bitvector (respectively)
+//  as this is not considered to be a valid unary encoding. 
 
 // ========================================================================= //
 //                                                                           //
@@ -66,13 +66,13 @@ module u #(
 //                                                                           //
 // ========================================================================= //
 
-logic [W - 1:0]              is_unary_v;
 logic [W - 1:0]              match_lo_v;
 logic [W - 1:0]              match_hi_v;
 logic [W:0]                  match_v;
 logic [W - 1:0]              match_lo_n_v;
 logic [W - 1:0]              match_hi_n_v;
 logic [W:0]                  match_n_v;
+logic [W - 1:0]              is_unary_v;
 logic                        is_unary;
 
 // ========================================================================= //
@@ -87,17 +87,17 @@ for (genvar i = 0; i < (W - 1); i++) begin : is_unary_i_GEN
 u_mask #(.W(W), .I(i), .MATCH_BIT(1'b1), .LSB(1'b1))
    u_u_mask_lsb (.i_x(i_x), .o_match(match_lo_v[i]));
 
-// Match: 000000[0]xxxxx, where [] is pivot 'i'
+// Match: 000000[x]xxxxx, where [] is pivot 'i'
 u_mask #(.W(W), .I(i + 1), .MATCH_BIT(1'b0), .LSB(1'b0))
    u_u_mask_msb (.i_x(i_x), .o_match(match_hi_v[i]));
 
 if (P_ADMIT_COMPLIMENT_EN) begin : admit_compliment_GEN
 
-  // Match: xxxxxxx[0]000000, where [] is pivot 'i'.
+  // Match: xxxxxx[0]000000, where [] is pivot 'i'.
   u_mask #(.W(W), .I(i), .MATCH_BIT(1'b0), .LSB(1'b1))
      u_u_mask_lsb_n (.i_x(i_x), .o_match(match_lo_n_v[i]));
 
-  // Match: 1111111[1]xxxxx, where [] is pivot 'i'.
+  // Match: 111111[x]xxxxxx, where [] is pivot 'i'.
   u_mask #(.W(W), .I(i + 1), .MATCH_BIT(1'b1), .LSB(1'b0))
      u_u_mask_msb_n (.i_x(i_x), .o_match(match_hi_n_v[i]));
 
@@ -106,11 +106,13 @@ else begin : not_admit_compliment
 
   // Otherwise, disabled.
   assign match_lo_n_v[i] = 1'b0;
+  assign match_hi_n_v[i] = 1'b0;
 
 end : not_admit_compliment
 
-// Match on lo,hi unary code; or, similarly, on its compliment.
+// Match on upper and lower segments of unary code.
 assign match_v[i]   = (match_lo_v[i] & match_hi_v[i]);
+// Similarly, match on compliment.
 assign match_n_v[i] = (match_lo_n_v[i] & match_hi_n_v[i]);
 
 end : is_unary_i_GEN
