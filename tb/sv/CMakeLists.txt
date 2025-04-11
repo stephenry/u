@@ -30,59 +30,18 @@
 # Source definitions:
 #
 include(rtl)
-rtl_render_and_copy()
-
-# ---------------------------------------------------------------------------- #
-# Technology definitions (sim):
-#
-include(tech)
-tech_render_and_copy("sim")
-
-# ---------------------------------------------------------------------------- #
-# Emit configuration files:
-#
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tb_pkg.vh.in" "tb_pkg.vh")
 
 set(VERILATED_ARGS
   "-cc"
   "-Wall"
-  "--Mdir ${VERILATED_DIR}"
+  "--Mdir vobj"
   "--build"
-  "-DTB_HAS_CMD_ID"
-  "--unused-regexp \"UNUSED_*\""
-  "--top-module ${VERILATED_TOP}"
-  "-I${CMAKE_CURRENT_BINARY_DIR}"
-  "--trace")
-
-# ---------------------------------------------------------------------------- #
-# Compile file-list:
-#
-set(TB_SOURCES
-  "${RTL_BUILD_SOURCES}"
-  "${TECH_BUILD_SOURCES}"
-  # TB Sources:
-  "${CMAKE_CURRENT_SOURCE_DIR}/hash/hash.sv"
-  "${CMAKE_CURRENT_SOURCE_DIR}/hash/hash_pathological.sv"
-  "${CMAKE_CURRENT_SOURCE_DIR}/hash/hash_parity.sv"
-  "${CMAKE_CURRENT_SOURCE_DIR}/tb.sv")
-
-# ---------------------------------------------------------------------------- #
-# Enable SV-Assertions:
-#
-if (ENABLE_SVA)
-  # Building with SV-Assertions (SVA); add in relevant sourcefiles as necessary.
-  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/sva")
-  include(sva)
-  sva_render_and_copy()
-  list(APPEND TB_SOURCES "${SVA_BUILD_SOURCES}")
-endif ()
-
-# ---------------------------------------------------------------------------- #
-# Consolidate include directories:
-#
-set(VERILATED_COMMAND_LIST
-  "${VERILATED_ARGS}"
-  "${TB_SOURCES}")
+  "-GW=32"
+  "-GP_ADMIT_COMPLIMENT_EN=1'b1"
+  "--top-module u")
+foreach (file ${RTL_SOURCES})
+  list(APPEND VERILATED_ARGS ${file})
+endforeach ()
 
 macro(render_verilator_command_list arg_list output_filename)
   file(REMOVE ${output_filename})
@@ -94,14 +53,13 @@ endmacro ()
 # ---------------------------------------------------------------------------- #
 # Generate Verilator Command File:
 #
-set(VERILATED_COMMAND_FILE "${CMAKE_CURRENT_BINARY_DIR}/vc.f")
 render_verilator_command_list(
-  "${VERILATED_COMMAND_LIST}" ${VERILATED_COMMAND_FILE})
+  "${VERILATED_ARGS}" ${CMAKE_CURRENT_BINARY_DIR}/vc.f)
 
 # ---------------------------------------------------------------------------- #
 # Verilation:
 #
 add_custom_target(verilate
-  COMMAND ${VERILATOR_EXE} -f ${VERILATED_COMMAND_FILE}
-  DEPENDS ${TB_SOURCES}
+  COMMAND ${VERILATOR} -f ${CMAKE_CURRENT_BINARY_DIR}/vc.f
+  DEPENDS ${RTL_SOURCES}
   COMMENT "Verilating (${CMAKE_CURRENT_BINARY_DIR})...")

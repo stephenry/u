@@ -34,7 +34,7 @@ module u_mask #(
 // Bit value match
 , parameter bit MATCH_BIT
 // Match toward LSB
-, parameter int LSB
+, parameter bit LSB
 ) (
 // ------------------------------------------------------------------------- //
 // Input vector

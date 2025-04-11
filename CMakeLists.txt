@@ -38,4 +38,6 @@ if (NOT VERILATOR)
     message(FATAL "Could not find Verilator executable...")
 endif ()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/rtl")
+
 add_subdirectory(tb)
