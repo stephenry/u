@@ -25,6 +25,14 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
+#include "Vu.h"
+
+class TB : public Vu {
+public:
+    explicit TB() {}
+};
+
 int main(int arg, const char** argv) {
+    TB tb{};
     return 0;
 }

@@ -27,4 +27,13 @@
 
 add_subdirectory(sv)
 
+verilator_build(vlib)
+
 add_executable(tb tb.cc)
+target_include_directories(tb
+    PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}/sv/vobj
+    ${VERILATOR_ROOT}/include)
+target_link_libraries(tb
+    vlib
+    ${CMAKE_CURRENT_BINARY_DIR}/sv/vobj/Vu__ALL.a)

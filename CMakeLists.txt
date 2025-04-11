@@ -28,16 +28,12 @@
 cmake_minimum_required(VERSION 3.22)
 project(u)
 
-find_program(VERILATOR
-    verilator
-    HINTS /tools/verilator-5.034/bin
-    REQUIRED
-    )
 
-if (NOT VERILATOR)
-    message(FATAL "Could not find Verilator executable...")
-endif ()
+list(APPEND CMAKE_MODULE_PATH
+ ${CMAKE_SOURCE_DIR}/rtl
+ ${CMAKE_SOURCE_DIR}/cmake
+ )
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/rtl")
+include(FindVerilator)
 
 add_subdirectory(tb)

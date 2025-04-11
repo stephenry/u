@@ -66,11 +66,11 @@ module u #(
 //                                                                           //
 // ========================================================================= //
 
-logic [W - 2:0]              match_lo_v;
-logic [W - 2:0]              match_hi_v;
+logic [W - 3:0]              match_lo_v;
+logic [W - 3:0]              match_hi_v;
 logic [W - 2:0]              match_v;
-logic [W - 2:0]              match_lo_n_v;
-logic [W - 2:0]              match_hi_n_v;
+logic [W - 3:0]              match_lo_n_v;
+logic [W - 3:0]              match_hi_n_v;
 logic [W - 2:0]              match_n_v;
 logic [W - 2:0]              is_unary_v;
 logic                        is_unary;
@@ -81,7 +81,7 @@ logic                        is_unary;
 //                                                                           //
 // ========================================================================= //
 
-for (genvar i = 0; i < (W - 1); i++) begin : is_unary_i_GEN
+for (genvar i = 0; i < (W - 2); i++) begin : is_unary_i_GEN
 
 // Match: xxxxxx[1]11111, where [] is pivot 'i'
 u_mask #(.W(W), .I(i), .MATCH_BIT(1'b1), .LSB(1'b1))
