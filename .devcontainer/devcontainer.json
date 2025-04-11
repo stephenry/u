@@ -1,0 +1,9 @@
+{
+	"name": "Verilator Dev.",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/docker-from-docker:1": {}
+	}
+}

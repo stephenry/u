@@ -68,10 +68,10 @@ module u #(
 
 logic [W - 1:0]              match_lo_v;
 logic [W - 1:0]              match_hi_v;
-logic [W:0]                  match_v;
+logic [W - 1:0]              match_v;
 logic [W - 1:0]              match_lo_n_v;
 logic [W - 1:0]              match_hi_n_v;
-logic [W:0]                  match_n_v;
+logic [W - 1:0]              match_n_v;
 logic [W - 1:0]              is_unary_v;
 logic                        is_unary;
 
@@ -118,16 +118,16 @@ assign match_n_v[i] = (match_lo_n_v[i] & match_hi_n_v[i]);
 end : is_unary_i_GEN
 
 // Handle all-zero (0) boundary condition as a special-case.
-assign match_v[W]   = (i_x == '0);
+assign match_v[W - 1]   = (i_x == '0);
 
 // When compliment is considered, handle all-one (1) boundary condition
 // as a special-case.
-assign match_n_v[W] = P_ADMIT_COMPLIMENT_EN ? (i_x == '1) : 1'b0;
+assign match_n_v[W - 1] = P_ADMIT_COMPLIMENT_EN ? (i_x == '1) : 1'b0;
 
 // Match vector on unary code or its compliment. 
 assign is_unary_v = (match_v | match_n_v)
 
-// Admit is unary-/theromometer- code if valid encoding is found at any
+// Admit is unary-/thermometer- code if valid encoding is found at any
 // pivot index in the input bit-vector. 
 assign is_unary = (is_unary_v != 0);
 
