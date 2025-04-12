@@ -56,7 +56,7 @@ if (EXISTS $ENV{VERILATOR_ROOT})
     "${VERILATOR_ROOT}/include"
     "${VERILATOR_ROOT}/include/vltstd")
 
-  macro(verilate design rtl_sources command_list)
+  macro(verilate design rtl_sources command_list design_lib)
     set(command_file ${CMAKE_CURRENT_BINARY_DIR}/${design}_vc.f)
     set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/VObj_${design})
     # Output directory does not exist until Verilator has run; but
@@ -99,6 +99,9 @@ if (EXISTS $ENV{VERILATOR_ROOT})
     
     # Generated library has dependency on Verilator runtime.
     add_dependencies(V${design}__ALL verilate_${design} vlib)
+
+    # Set output library variable
+    set(${design_lib} ${generated_library_name})
   endmacro ()
 else ()
   # Configuration script expects and requires that the VERILATOR_ROOT

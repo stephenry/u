@@ -25,12 +25,18 @@
 ## POSSIBILITY OF SUCH DAMAGE.
 ##========================================================================== //
 
-set (E_RTL_SOURCES
+set(COMMON_RTL_SOURCES
+    ${CMAKE_SOURCE_DIR}/rtl/common_defs.vh)
+
+set(E_RTL_SOURCES
+    ${COMMON_RTL_SOURCES}
     ${CMAKE_SOURCE_DIR}/rtl/e/e_is_1hot.sv
     ${CMAKE_SOURCE_DIR}/rtl/e/e.sv)
 
 set(U_RTL_SOURCES
+    ${COMMON_RTL_SOURCES}
     ${CMAKE_SOURCE_DIR}/rtl/u/u_mask.sv
     ${CMAKE_SOURCE_DIR}/rtl/u/u.sv)
+
 
 
