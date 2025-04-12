@@ -35,6 +35,7 @@ set(U_VERILATOR_ARGS
     "--build"
     "-GW=${RTL_PARAM__W}"
     "-GP_ADMIT_COMPLIMENT_EN=1'b1"
+    "-I${CMAKE_SOURCE_DIR}/rtl"
     "--top-module u")
 
 verilate(u "${U_RTL_SOURCES}" "${U_VERILATOR_ARGS}")
@@ -45,6 +46,7 @@ set(E_VERILATOR_ARGS
     "--build"
     "-GW=${RTL_PARAM__W}"
     "-GP_ADMIT_COMPLIMENT_EN=1'b1"
+    "-I${CMAKE_SOURCE_DIR}/rtl"
     "--top-module e")
 
 verilate(e "${E_RTL_SOURCES}" "${E_VERILATOR_ARGS}")
