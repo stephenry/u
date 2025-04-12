@@ -41,21 +41,64 @@ if (EXISTS $ENV{VERILATOR_ROOT})
     ${VERILATOR_VERSION_MAJOR}.${VERILATOR_VERSION_MINOR})
   message(STATUS "Found Verilator version: ${VERILATOR_VERSION}")
 
-  macro (verilator_build vlib)
-    add_library(${vlib} STATIC
-      "${VERILATOR_ROOT}/include/verilated.h"
-      "${VERILATOR_ROOT}/include/verilated.cpp"
-      "${VERILATOR_ROOT}/include/verilated_dpi.h"
-      "${VERILATOR_ROOT}/include/verilated_dpi.cpp"
-      "${VERILATOR_ROOT}/include/verilated_save.h"
-      "${VERILATOR_ROOT}/include/verilated_save.cpp"
-      "${VERILATOR_ROOT}/include/verilated_threads.h"
-      "${VERILATOR_ROOT}/include/verilated_threads.cpp"
-      "${VERILATOR_ROOT}/include/verilated_vcd_c.h"
-      "${VERILATOR_ROOT}/include/verilated_vcd_c.cpp")
-    target_include_directories(${vlib} PUBLIC
-      "${VERILATOR_ROOT}/include"
-      "${VERILATOR_ROOT}/include/vltstd")
+  add_library(vlib STATIC
+    "${VERILATOR_ROOT}/include/verilated.h"
+    "${VERILATOR_ROOT}/include/verilated.cpp"
+    "${VERILATOR_ROOT}/include/verilated_dpi.h"
+    "${VERILATOR_ROOT}/include/verilated_dpi.cpp"
+    "${VERILATOR_ROOT}/include/verilated_save.h"
+    "${VERILATOR_ROOT}/include/verilated_save.cpp"
+    "${VERILATOR_ROOT}/include/verilated_threads.h"
+    "${VERILATOR_ROOT}/include/verilated_threads.cpp"
+    "${VERILATOR_ROOT}/include/verilated_vcd_c.h"
+    "${VERILATOR_ROOT}/include/verilated_vcd_c.cpp")
+  target_include_directories(vlib PUBLIC
+    "${VERILATOR_ROOT}/include"
+    "${VERILATOR_ROOT}/include/vltstd")
+
+  macro(verilate design rtl_sources command_list)
+    set(command_file ${CMAKE_CURRENT_BINARY_DIR}/${design}_vc.f)
+    set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/VObj_${design})
+    # Output directory does not exist until Verilator has run; but
+    # IMPORTED_INCLUDE_DIRECTORIES below requires that the directory
+    # exist at the time configuration is performed.
+    file(MAKE_DIRECTORY ${out_dir})
+    set(generated_header ${out_dir}/V${design}.h)
+
+    set(generated_library_name V${design}__ALL)
+    set(generated_library ${out_dir}/${generated_library_name}.a)
+
+    # Render Verilator command file.
+    file(REMOVE ${command_file})
+    foreach (arg ${command_list})
+      file(APPEND ${command_file} "${arg}\n")
+    endforeach ()
+    # Fix-up object directory
+    file(APPEND ${command_file} "--Mdir ${out_dir}\n")
+
+    foreach (rtl_source ${rtl_sources})
+      file(APPEND ${command_file} "${rtl_source}\n")
+    endforeach ()
+  
+    # Verilator command/target definitions.
+    add_custom_command(
+      OUTPUT ${generated_header} ${generated_library}
+      DEPENDS ${rtl_sources}
+      COMMAND ${VERILATOR_EXE} -f ${command_file})
+    add_custom_target(
+      verilate_${design}
+      DEPENDS ${generated_header} ${generated_library})
+
+    # Create imported library denoting the static library compiled
+    # by Verilator.
+    add_library(V${design}__ALL IMPORTED STATIC GLOBAL)
+    set_target_properties(V${design}__ALL PROPERTIES
+      IMPORTED_LOCATION "${generated_library}"
+      INTERFACE_INCLUDE_DIRECTORIES "${out_dir}"
+      INTERFACE_LINK_LIBRARIES vlib)
+    
+    # Generated library has dependency on Verilator runtime.
+    add_dependencies(V${design}__ALL verilate_${design} vlib)
   endmacro ()
 else ()
   # Configuration script expects and requires that the VERILATOR_ROOT

@@ -25,74 +25,173 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
+#include <string>
 #include <string_view>
 #include <vector>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <algorithm>
+#include <unordered_map>
 
-#include "Vu.h"
+#include "tb.h"
 
-struct Options {
-    static Options from_args(const std::vector<std::string_view>& vs);
-
-    std::size_t n;
+struct DesignBase {
+    virtual ~DesignBase() = default;
 };
 
-Options Options::from_args(const std::vector<std::string_view>& vs) {
-    auto help = []() {
-        std::cout << R"(
-Usage: Unary-/Thermometer admission circuit testbench driver.
+template<typename T>
+struct Design : DesignBase {
+public:
+    explicit Design() = default;
+private:
+    std::unique_ptr<T> uut_;
+};
 
-Arguments:
+static class DesignRegistry {
+    class DesignBuilderBase {
+    public:
+        explicit DesignBuilderBase() = default;
+        virtual ~DesignBuilderBase() = default;
 
-  -n        : (Integer) Number of random trials
-  -h/--help : Print Options.
-    )";
+        virtual std::unique_ptr<DesignBase> construct() const = 0;
     };
-    Options o;
-    for (std::size_t i = 1; i < vs.size(); i++) {
-        if (vs[i] == "-n") {
-            o.n = stoull(std::string{vs.at(++i)});
-        } else if (vs[i] == "-h" || vs[i] == "--help") {
-            help();
-            std::exit(1);
-        } else {
-            std::cout << "Invalid command line option: " << vs[i] << "\n";
-            help();
-            std::exit(1);
+
+    template<typename T>
+    class DesignBuilder : public DesignBuilderBase {
+    public:
+        explicit DesignBuilder() = default;
+        std::unique_ptr<DesignBase> construct() const override {
+            return std::make_unique<T>();
+        }
+    };
+public:
+    explicit DesignRegistry() = default;
+
+    template<typename T>
+    void add_design(const std::string& name) {
+        if (designs_.find(name) != designs_.end()) {
+            designs_[name] = std::unique_ptr<DesignBuilderBase>(
+                new DesignBuilder<Design<T>>{});
         }
     }
-    return o;
-}
 
-class TB {
-public:
-    explicit TB(const Options& opts);
-
-    int run();
+    std::unique_ptr<DesignBase> construct_design(const std::string& name) {
+        if (auto it = designs_.find(name); it != designs_.end()) {
+            return it->second->construct();
+        }
+        return nullptr;
+    }
 
 private:
-    std::unique_ptr<Vu> u_;
-    Options opts_;
+    std::unordered_map<std::string, std::unique_ptr<DesignBuilderBase>> designs_;
+} DESIGN_REGISTRY;
+
+#define DECLARE_DESIGN(__name) \
+    struct DesignRegister##__name { \
+        DesignRegister##__name() { \
+            DESIGN_REGISTRY.add_design<V##__name>(#__name); \
+        } \
+    } register_##__name;
+
+#include "VObj_u/Vu.h"
+DECLARE_DESIGN(u);
+
+#include "VObj_e/Ve.h"
+DECLARE_DESIGN(e);
+
+class Program {
+public:
+    explicit Program() = default;
+    virtual ~Program() = default;
+
+    virtual void run(DesignBase* d) = 0;
 };
 
-TB::TB(const Options& opts)
-    : opts_(opts)
+struct Options {
+    std::unique_ptr<Program> program;
+    std::string design_name = "e";
+    std::size_t n = 1000;
+};
+
+class Test {
+public:
+    void run() {
+        std::unique_ptr<DesignBase> d =
+            DESIGN_REGISTRY.construct_design(opts_.design_name);
+        opts_.program->run(d.get());
+    }
+
+private:
+    const Options opts_;
+};
+
+struct OptionsBuilder {
+    struct Exception {
+        explicit Exception(const std::string& what)
+            : what_(what) {}
+        const std::string& what() const { return what_; }
+    private:
+        std::string what_;
+    };
+
+    explicit OptionsBuilder(int argc, const char** argv);
+
+    Options build() const;
+
+private:
+    void help() const;
+    void scan_arguments(Options& opts) const;
+
+    std::vector<std::string_view> vs_;
+};
+
+OptionsBuilder::OptionsBuilder(int argc, const char** argv)
+    : vs_(argv + 1, argv + argc)
 {}
 
-int TB::run() {
-    return 0;
+Options OptionsBuilder::build() const {
+    if (vs_.empty()) {
+        return Options{};
+    }
+
+    Options opts;
+    scan_arguments(opts);
+    return opts;
 }
 
-int main(int arg, const char** argv) {
+void OptionsBuilder::scan_arguments(Options& opts) const {
+    for (std::size_t i = 1; i < vs_.size(); i++) {
+        if (vs_[i] == "-n") {
+            opts.n = std::stoull(std::string{vs_.at(++i)});
+        } else if (vs_[i] == "-h" || vs_[i] == "--help") {
+            help();
+        } else {
+            std::cout << "Invalid command line option: " << vs_[i] << "\n";
+            help();
+        }
+    }   
+}
+
+void OptionsBuilder::help() const {
+    std::cout << R"(
+        Usage: Unary-/Thermometer admission circuit testbench driver.
+        
+        Arguments:
+        
+          -n        : (Integer) Number of random trials
+          -h/--help : Print Options.
+            )";
+    std::exit(1);
+}
+
+
+int main(int argc, const char** argv) {
     int ret = 0;
     try {
-        const std::vector<std::string_view> vs{argv, argv + arg};
-        const Options opts{Options::from_args(vs)};
-        TB tb{opts};
-        ret = tb.run();
-    } catch (std::exception& ex) {
+        const OptionsBuilder ob{argc, argv};
+    } catch (const OptionsBuilder::Exception& ex) {
+        std::cout << "Error: " << ex.what() << std::endl;
         ret = 1;
     }
     return ret;

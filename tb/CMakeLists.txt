@@ -25,15 +25,35 @@
 ## POSSIBILITY OF SUCH DAMAGE.
 ##========================================================================== //
 
-add_subdirectory(sv)
+include(rtl)
 
-verilator_build(vlib)
+# 'U' Design
+#
+set(U_VERILATOR_ARGS
+    "-cc"
+    "-Wall"
+    "--build"
+    "-GW=${RTL_PARAM__W}"
+    "-GP_ADMIT_COMPLIMENT_EN=1'b1"
+    "--top-module u")
 
+verilate(u "${U_RTL_SOURCES}" "${U_VERILATOR_ARGS}")
+
+set(E_VERILATOR_ARGS
+    "-cc"
+    "-Wall"
+    "--build"
+    "-GW=${RTL_PARAM__W}"
+    "-GP_ADMIT_COMPLIMENT_EN=1'b1"
+    "--top-module e")
+
+verilate(e "${E_RTL_SOURCES}" "${E_VERILATOR_ARGS}")
+
+# Generate TB driver
 add_executable(tb tb.cc)
-target_include_directories(tb
-    PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}/sv/vobj
-    ${VERILATOR_ROOT}/include)
-target_link_libraries(tb
-    vlib
-    ${CMAKE_CURRENT_BINARY_DIR}/sv/vobj/Vu__ALL.a)
+target_include_directories(tb PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(tb Vu__ALL Ve__ALL)
+set_target_properties(tb PROPERTIES
+    CXX_STANDARD 20)
+
+configure_file(tb.h.in tb.h)
