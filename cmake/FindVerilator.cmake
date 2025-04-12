@@ -56,7 +56,7 @@ if (EXISTS $ENV{VERILATOR_ROOT})
     "${VERILATOR_ROOT}/include"
     "${VERILATOR_ROOT}/include/vltstd")
 
-  macro(verilate design rtl_sources command_list design_lib)
+  macro(verilate design rtl_sources command_list target_out)
     set(command_file ${CMAKE_CURRENT_BINARY_DIR}/${design}_vc.f)
     set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/VObj_${design})
     # Output directory does not exist until Verilator has run; but
@@ -91,17 +91,17 @@ if (EXISTS $ENV{VERILATOR_ROOT})
 
     # Create imported library denoting the static library compiled
     # by Verilator.
-    add_library(V${design}__ALL IMPORTED STATIC GLOBAL)
-    set_target_properties(V${design}__ALL PROPERTIES
+    add_library(${generated_library_name} IMPORTED STATIC GLOBAL)
+    set_target_properties(${generated_library_name} PROPERTIES
       IMPORTED_LOCATION "${generated_library}"
       INTERFACE_INCLUDE_DIRECTORIES "${out_dir}"
       INTERFACE_LINK_LIBRARIES vlib)
     
     # Generated library has dependency on Verilator runtime.
-    add_dependencies(V${design}__ALL verilate_${design} vlib)
+    add_dependencies(${generated_library_name} verilate_${design} vlib)
 
     # Set output library variable
-    set(${design_lib} ${generated_library_name})
+    set(${target_out} ${generated_library_name})
   endmacro ()
 else ()
   # Configuration script expects and requires that the VERILATOR_ROOT
