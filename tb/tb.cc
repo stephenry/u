@@ -68,9 +68,18 @@ static class DesignRegistry {
 public:
     explicit DesignRegistry() = default;
 
+    std::vector<std::string> designs() const {
+        std::vector<std::string> vs;
+        vs.reserve(designs_.size());
+        for (auto& [k, v] : designs_) {
+            vs.push_back(k);
+        }
+        return vs;
+    }
+
     template<typename T>
     void add_design(const std::string& name) {
-        if (designs_.find(name) != designs_.end()) {
+        if (designs_.find(name) == designs_.end()) {
             designs_[name] = std::unique_ptr<DesignBuilderBase>(
                 new DesignBuilder<Design<T>>{});
         }
@@ -88,11 +97,11 @@ private:
 } DESIGN_REGISTRY;
 
 #define DECLARE_DESIGN(__name) \
-    struct DesignRegister##__name { \
-        DesignRegister##__name() { \
+    static const struct DesignRegister##__name { \
+        explicit DesignRegister##__name() { \
             DESIGN_REGISTRY.add_design<V##__name>(#__name); \
         } \
-    } register_##__name;
+    } register_##__name{};
 
 #include "VObj_u/Vu.h"
 DECLARE_DESIGN(u);
@@ -147,7 +156,7 @@ private:
 };
 
 OptionsBuilder::OptionsBuilder(int argc, const char** argv)
-    : vs_(argv + 1, argv + argc)
+    : vs_(argv, argv + argc)
 {}
 
 Options OptionsBuilder::build() const {
@@ -161,16 +170,23 @@ Options OptionsBuilder::build() const {
 }
 
 void OptionsBuilder::scan_arguments(Options& opts) const {
+    bool terminate = false;
     for (std::size_t i = 1; i < vs_.size(); i++) {
         if (vs_[i] == "-n") {
             opts.n = std::stoull(std::string{vs_.at(++i)});
+        } else if (vs_[i] == "--list_designs") {
+            for (const std::string& design : DESIGN_REGISTRY.designs()) {
+                std::cout << design << std::endl;
+            }
+            terminate = true;
+            std::exit(1);
         } else if (vs_[i] == "-h" || vs_[i] == "--help") {
             help();
         } else {
             std::cout << "Invalid command line option: " << vs_[i] << "\n";
             help();
         }
-    }   
+    }
 }
 
 void OptionsBuilder::help() const {
@@ -179,8 +195,9 @@ void OptionsBuilder::help() const {
         
         Arguments:
         
-          -n        : (Integer) Number of random trials
-          -h/--help : Print Options.
+          -n                : (Integer) Number of random trials
+          -h/--help         : Print Options.
+             --list_designs : List available designs
             )";
     std::exit(1);
 }
@@ -190,6 +207,7 @@ int main(int argc, const char** argv) {
     int ret = 0;
     try {
         const OptionsBuilder ob{argc, argv};
+        auto b{ob.build()};
     } catch (const OptionsBuilder::Exception& ex) {
         std::cout << "Error: " << ex.what() << std::endl;
         ret = 1;
