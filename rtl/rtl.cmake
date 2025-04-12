@@ -25,8 +25,12 @@
 ## POSSIBILITY OF SUCH DAMAGE.
 ##========================================================================== //
 
-set(RTL_SOURCES
-    ${CMAKE_SOURCE_DIR}/rtl/u_mask.sv
-    ${CMAKE_SOURCE_DIR}/rtl/u.sv
-    )
+set (E_RTL_SOURCES
+    ${CMAKE_SOURCE_DIR}/rtl/e/e_is_1hot.sv
+    ${CMAKE_SOURCE_DIR}/rtl/e/e.sv)
+
+set(U_RTL_SOURCES
+    ${CMAKE_SOURCE_DIR}/rtl/u/u_mask.sv
+    ${CMAKE_SOURCE_DIR}/rtl/u/u.sv)
+
 

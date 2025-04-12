@@ -25,14 +25,75 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
+#include <string_view>
+#include <vector>
+#include <iostream>
+#include <memory>
+#include <string>
+
 #include "Vu.h"
 
-class TB : public Vu {
-public:
-    explicit TB() {}
+struct Options {
+    static Options from_args(const std::vector<std::string_view>& vs);
+
+    std::size_t n;
 };
 
-int main(int arg, const char** argv) {
-    TB tb{};
+Options Options::from_args(const std::vector<std::string_view>& vs) {
+    auto help = []() {
+        std::cout << R"(
+Usage: Unary-/Thermometer admission circuit testbench driver.
+
+Arguments:
+
+  -n        : (Integer) Number of random trials
+  -h/--help : Print Options.
+    )";
+    };
+    Options o;
+    for (std::size_t i = 1; i < vs.size(); i++) {
+        if (vs[i] == "-n") {
+            o.n = stoull(std::string{vs.at(++i)});
+        } else if (vs[i] == "-h" || vs[i] == "--help") {
+            help();
+            std::exit(1);
+        } else {
+            std::cout << "Invalid command line option: " << vs[i] << "\n";
+            help();
+            std::exit(1);
+        }
+    }
+    return o;
+}
+
+class TB {
+public:
+    explicit TB(const Options& opts);
+
+    int run();
+
+private:
+    std::unique_ptr<Vu> u_;
+    Options opts_;
+};
+
+TB::TB(const Options& opts)
+    : opts_(opts)
+{}
+
+int TB::run() {
     return 0;
+}
+
+int main(int arg, const char** argv) {
+    int ret = 0;
+    try {
+        const std::vector<std::string_view> vs{argv, argv + arg};
+        const Options opts{Options::from_args(vs)};
+        TB tb{opts};
+        ret = tb.run();
+    } catch (std::exception& ex) {
+        ret = 1;
+    }
+    return ret;
 }
