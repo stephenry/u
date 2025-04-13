@@ -45,7 +45,12 @@ constexpr std::size_t ceil(std::size_t n, std::size_t d) {
     return (n + (d - 1)) / d;
 }
 
-class Random {
+template<typename T, std::size_t W>
+constexpr T mask() {
+    return (T{1} << W) - 1;
+}
+
+static class Random {
 public:
     using seed_type = std::mt19937::result_type;
    
@@ -68,15 +73,23 @@ public:
             return d(mt_);     
         }
     }
+
+    bool random_bool(float t_prob = 0.5f) {
+        std::bernoulli_distribution b(t_prob);
+        return b(mt_);
+    }
 private:
     std::mt19937 mt_;
-};
+} RANDOM;
 
-template<std::size_t W>
+template<std::size_t W, typename T = vluint8_t>
 class VBitVector {
     static constexpr std::size_t size_in_bits_n = W;
     static constexpr std::size_t size_in_bytes_n = ceil(size_in_bits_n, 8);
+    static constexpr std::size_t bits_in_tail_n = (W % sizeof(T));
 public:
+    using value_type = T;
+
     static VBitVector<W> all_zeros() {
         return VBitVector<W>{};
     }
@@ -105,6 +118,12 @@ public:
         std::fill(v_.begin(), v_.end(), 0);
     }
 
+    void clean() noexcept {
+        if constexpr (bits_in_tail_n > 0) {
+            v_.back() = v_.back() & mask<vluint8_t, bits_in_tail_n>();
+        }
+    }
+
     void bit(std::size_t i, bool b = true) noexcept {
         vluint8_t mask = (1 << (i & 0x7));
         if (b) {
@@ -125,6 +144,10 @@ public:
         return (v_[byte] & (1ul << (i & 0x7))) != 0;
     }
 
+    void value(std::size_t i, value_type v) {
+        v_[i] = v;
+    }
+
 #define VERILATOR_PORT_TYPES(__func) \
     __func(vluint32_t)
 
@@ -137,10 +160,10 @@ public:
 #undef DECLARE_VERILATOR_PORT_CONVERTER
 
 protected:
-    void to_verilated_impl(vluint8_t* b) const noexcept {
+    void to_verilated_impl(value_type* b) const noexcept {
         std::copy(v_.begin(), v_.end(), b);
     }
-    std::array<vluint8_t, size_in_bytes_n> v_;
+    std::array<value_type, size_in_bytes_n> v_;
 };
 
 class VBit : public VBitVector<1> {
@@ -192,6 +215,26 @@ StimulusVector generate_unary(std::size_t n, bool compliment = false) {
         }
     }
     return v;
+}
+
+std::tuple<bool, StimulusVector> generate_non_unary(std::size_t rounds_n = 1) {
+    while (rounds_n--) {
+        StimulusVector v;
+        for (std::size_t i = 0; i < v.size_bytes_n(); i++) {
+            v.value(i, RANDOM.uniform<StimulusVector::value_type>());
+        }
+        v.clean();
+
+        if (auto [unary, compliment] = is_unary(v); unary) {
+            return {true, v};
+        }
+
+        // Otherwise, we've somehow hit a unary integer. Repeat until success.
+    }
+
+    // Pathological case where we've been unable to generate a non-unary case.
+    // Unlikely to ever to occur outside of exceptional cases.
+    return {false, StimulusVector{}};
 }
 
 struct DesignBase {
@@ -264,7 +307,8 @@ public:
     }
 
 private:
-    std::unordered_map<std::string, std::unique_ptr<DesignBuilderBase>> designs_;
+    std::unordered_map<std::string,
+        std::unique_ptr<DesignBuilderBase>> designs_;
 } DESIGN_REGISTRY;
 
 #define DECLARE_DESIGN(__name) \
@@ -282,38 +326,86 @@ DECLARE_DESIGN(e);
 
 class TestCase {
 public:
-    explicit TestCase() = default;
+    explicit TestCase()
+        : mismatches_(0)
+    {}
+
     virtual ~TestCase() = default;
 
-    virtual bool pass() const noexcept = 0;
+    virtual bool pass() const noexcept { return (mismatches_ != 0); };
     virtual bool fail() const noexcept { return !pass(); }
 
     virtual bool run(DesignBase* b) = 0;
-};
 
-class FullyRandomizedTestCase : public TestCase {
-public:
-    explicit FullyRandomizedTestCase() = default;
+protected:
+    bool check(DesignBase* b, const StimulusVector& v) {
+        bool rtl_is_unary = b->is_unary(v);
+        auto [beh_is_unary, beh_is_compliment] = is_unary(v);
 
-    bool pass() const noexcept override { return false; }
+        if (rtl_is_unary == beh_is_unary) {
+            ++mismatches_;
+            return false;
+        }
 
-    bool run(DesignBase* b) {
-        return false;
+        // TODO: Check compliment.
+        return true;
     }
 
 private:
     std::size_t mismatches_;
 };
 
+class FullyRandomizedTestCase : public TestCase {
+public:
+    explicit FullyRandomizedTestCase() = default;
+
+    // Parameters:
+
+    // Trial count
+    std::size_t param_n = 0;
+
+    // Probability of a unary-encoding value.
+    float param_unary_prob = 0.1f;
+
+    // Probability of a complimented unary-encoding value.
+    float param_compliment_prob = 0.5f;
+
+    bool pass() const noexcept override { return false; }
+
+    bool run(DesignBase* b) {
+        for (std::size_t i = 0; i < param_n; i++) {
+            if (!run_one_trial(b)) {
+                return false;
+            }
+        }
+        // generate_non_unary
+        return true;
+    }
+
+private:
+    bool run_one_trial(DesignBase* b) {
+        bool pass = false;
+        if (RANDOM.random_bool(param_unary_prob)) {
+            // Unary-vector
+            bool compliment = RANDOM.random_bool(param_compliment_prob);
+            std::size_t n = RANDOM.uniform(StimulusVector::size() - 2);
+            pass = check(b, generate_unary(n, compliment));
+        } else {
+            // Random, non-unary vector.
+            auto [success, v] = generate_non_unary();
+            if (success) {
+                pass = check(b, v);
+            }
+        }
+        return pass;
+    }
+};
+
 class DirectedExhaustiveTestCase : public TestCase {
 public:
     explicit DirectedExhaustiveTestCase(bool is_compliment = false)
-        : is_compliment_(is_compliment), mismatches_(0)
+        : is_compliment_(is_compliment)
     {}
-
-    bool pass() const noexcept override {
-        return (mismatches_ == 0);
-    }
 
     bool run(DesignBase* b) override {
         // Check boundary all-one/-zero case.
@@ -345,20 +437,8 @@ private:
         return true;
     }
 
-    bool check(DesignBase* b, const StimulusVector& v) {
-        bool rtl_is_unary = b->is_unary(v);
-        auto [beh_is_unary, beh_is_compliment] = is_unary(v);
 
-        if (rtl_is_unary == beh_is_unary) {
-            ++mismatches_;
-            return false;
-        }
-
-        // TODO: Check compliment.
-        return true;
-    }
     bool is_compliment_;
-    std::size_t mismatches_;
 };
 
 class DesignRunner {
