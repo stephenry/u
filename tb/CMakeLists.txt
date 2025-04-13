@@ -51,11 +51,29 @@ set(E_VERILATOR_ARGS
 
 verilate(e "${E_RTL_SOURCES}" "${E_VERILATOR_ARGS}" v_e_lib)
 
+set(TB_SOURCES
+    "${CMAKE_SOURCE_DIR}/tb/common.h"
+    "${CMAKE_SOURCE_DIR}/tb/random.h"
+    "${CMAKE_SOURCE_DIR}/tb/designs.h"
+    "${CMAKE_SOURCE_DIR}/tb/designs.cc"
+    "${CMAKE_SOURCE_DIR}/tb/tests.h"
+    "${CMAKE_SOURCE_DIR}/tb/tests.cc"
+    "${CMAKE_SOURCE_DIR}/tb/tb.cc")
+
 # Generate TB driver
-add_executable(tb tb.cc)
+add_executable(tb ${TB_SOURCES})
 target_include_directories(tb PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tb ${v_u_lib} ${v_e_lib})
 set_target_properties(tb PROPERTIES
     CXX_STANDARD 20)
 
 configure_file(tb.h.in tb.h)
+
+find_program(CLANG_FORMAT
+    clang-format-14
+    PATHS /usr/bin)
+
+if (CLANG_FORMAT)
+    add_custom_target(clang-format
+        COMMAND ${CLANG_FORMAT} -i ${TB_SOURCES})
+endif()
