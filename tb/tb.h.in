@@ -28,6 +28,8 @@
 #ifndef TB_TB_H
 #define TB_TB_H
 
+#include <cstddef>
+
 static constexpr std::size_t RTL_PARAM__W = @RTL_PARAM__W@;
 
 static constexpr bool P_ADMIT_COMPLIMENT_EN = true;

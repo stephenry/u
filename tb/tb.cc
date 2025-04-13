@@ -33,17 +33,188 @@
 #include <string>
 #include <algorithm>
 #include <unordered_map>
+#include <array>
+#include <tuple>
+#include <random>
+#include <limits>
 
 #include "tb.h"
+#include "verilated.h"
+
+constexpr std::size_t ceil(std::size_t n, std::size_t d) {
+    return (n + (d - 1)) / d;
+}
+
+class Random {
+public:
+    using seed_type = std::mt19937::result_type;
+   
+    explicit Random(seed_type s = seed_type{}) { seed(s); }
+   
+    // Set seed of randomization engine.
+    void seed(seed_type s) { mt_.seed(s); }
+   
+    // Generate a random integral type in range [lo, hi]
+    template<typename T>
+    T uniform(T hi = std::numeric_limits<T>::max(), T lo = std::numeric_limits<T>::min()) {
+        static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
+        if constexpr (std::is_integral_v<T>) {
+            // Integral type
+            std::uniform_int_distribution<T> d(lo, hi);
+            return d(mt_);
+        } else {
+            // Floating-point type
+            std::uniform_real_distribution<T> d(lo, hi);
+            return d(mt_);     
+        }
+    }
+private:
+    std::mt19937 mt_;
+};
+
+template<std::size_t W>
+class VBitVector {
+    static constexpr std::size_t size_in_bits_n = W;
+    static constexpr std::size_t size_in_bytes_n = ceil(size_in_bits_n, 8);
+public:
+    static VBitVector<W> all_zeros() {
+        return VBitVector<W>{};
+    }
+
+    static VBitVector<W> all_ones() {
+        VBitVector<W> v{};
+        for (std::size_t i = 0; i < W; i++) {
+            v.bit(i, true);
+        }
+        return v;
+    }
+
+    explicit VBitVector() {
+        clear();
+    }
+
+    explicit VBitVector(vluint8_t *d, std::size_t n) {
+        clear();
+        std::copy_n(d, std::min(n, size_bytes_n()), v_.data());
+    }
+
+    static constexpr std::size_t size() noexcept { return size_in_bits_n; }
+    static constexpr std::size_t size_bytes_n() noexcept { return size_in_bytes_n; }
+
+    void clear() noexcept {
+        std::fill(v_.begin(), v_.end(), 0);
+    }
+
+    void bit(std::size_t i, bool b = true) noexcept {
+        vluint8_t mask = (1 << (i & 0x7));
+        if (b) {
+            // set bit
+            v_[i >> 3] |=   mask;
+        } else {
+            // clear bit
+            v_[i >> 3] &= (~mask);
+        }
+    }
+
+    bool bit(std::size_t i) const noexcept {
+        const std::size_t byte = (i >> 3);
+        if (v_.size() <= byte) {
+            // Infinite zero-extend.
+            return false;
+        }
+        return (v_[byte] & (1ul << (i & 0x7))) != 0;
+    }
+
+#define VERILATOR_PORT_TYPES(__func) \
+    __func(vluint32_t)
+
+#define DECLARE_VERILATOR_PORT_CONVERTER(__type) \
+    void to_verilated(__type& t) const noexcept { \
+        to_verilated_impl(reinterpret_cast<vluint8_t*>(std::addressof(t))); \
+    }
+    VERILATOR_PORT_TYPES(DECLARE_VERILATOR_PORT_CONVERTER)
+
+#undef DECLARE_VERILATOR_PORT_CONVERTER
+
+protected:
+    void to_verilated_impl(vluint8_t* b) const noexcept {
+        std::copy(v_.begin(), v_.end(), b);
+    }
+    std::array<vluint8_t, size_in_bytes_n> v_;
+};
+
+class VBit : public VBitVector<1> {
+public:
+    static VBit from_verilated(vluint8_t t) {
+        return VBit{t != 0};
+    }
+
+    explicit VBit(bool b) {
+        v_[0] = b ? 0b1 : 0b0;
+    }
+
+    bool to_bool() const noexcept {
+        return (v_[0] != 0);
+    }
+};
+
+using StimulusVector = VBitVector<RTL_PARAM__W>;
+
+template<std::size_t W>
+std::tuple<bool, bool> is_unary(const VBitVector<W>& b) {
+    std::size_t edges = 0, zeros = 0, ones = 0;
+    for (std::size_t i = 1; i < b.size(); ++i) {
+        if (b.bit(i)) {
+            ++ones;
+        } else {
+            ++zeros;
+        }
+
+        if (b.bit(i) ^ b.bit(i - 1)) {
+            ++edges;
+        }
+    }
+
+    bool is_compliment = b.bit(W - 1);
+    bool is_unary = 
+        (is_compliment ? (ones == W) : (zeros == W)) || (edges == 1);
+
+    return {is_unary, is_compliment};
+}
+
+StimulusVector generate_unary(std::size_t n, bool compliment = false) {
+    StimulusVector v;
+    for (std::size_t i = 0; i < v.size(); i++) {
+        if (i < n) {
+            v.bit(i, !compliment);
+        } else {
+            v.bit(i,  compliment);
+        }
+    }
+    return v;
+}
 
 struct DesignBase {
     virtual ~DesignBase() = default;
+
+    // Evaluate verilated module with stimulus 'v' and return admission
+    // decision.
+    virtual bool is_unary(const StimulusVector& v) noexcept = 0;
 };
 
 template<typename T>
 struct Design : DesignBase {
 public:
     explicit Design() = default;
+
+    bool is_unary(const StimulusVector& v) noexcept override {
+        // Drive input
+        v.to_verilated(uut_->i_x);
+        // Evaluate
+        uut_->eval();
+        // Return response.
+        return VBit::from_verilated(uut_->o_is_unary).to_bool();
+    }
 private:
     std::unique_ptr<T> uut_;
 };
@@ -101,7 +272,7 @@ private:
         explicit DesignRegister##__name() { \
             DESIGN_REGISTRY.add_design<V##__name>(#__name); \
         } \
-    } register_##__name{};
+    } __register_##__name{}
 
 #include "VObj_u/Vu.h"
 DECLARE_DESIGN(u);
@@ -109,16 +280,99 @@ DECLARE_DESIGN(u);
 #include "VObj_e/Ve.h"
 DECLARE_DESIGN(e);
 
-class Program {
+class TestCase {
 public:
-    explicit Program() = default;
-    virtual ~Program() = default;
+    explicit TestCase() = default;
+    virtual ~TestCase() = default;
+
+    virtual bool pass() const noexcept = 0;
+    virtual bool fail() const noexcept { return !pass(); }
+
+    virtual bool run(DesignBase* b) = 0;
+};
+
+class FullyRandomizedTestCase : public TestCase {
+public:
+    explicit FullyRandomizedTestCase() = default;
+
+    bool pass() const noexcept override { return false; }
+
+    bool run(DesignBase* b) {
+        return false;
+    }
+
+private:
+    std::size_t mismatches_;
+};
+
+class DirectedExhaustiveTestCase : public TestCase {
+public:
+    explicit DirectedExhaustiveTestCase(bool is_compliment = false)
+        : is_compliment_(is_compliment), mismatches_(0)
+    {}
+
+    bool pass() const noexcept override {
+        return (mismatches_ == 0);
+    }
+
+    bool run(DesignBase* b) override {
+        // Check boundary all-one/-zero case.
+        if (!zero_case(b))
+            return false;
+
+        // Exhaustively check all possible unary encodings.
+        if (!all_valid_unary_cases(b))
+            return false;
+
+        // Pass
+        return true;
+    }
+
+private:
+    bool zero_case(DesignBase* b) {
+        const StimulusVector zero_case = is_compliment_
+            ? StimulusVector::all_ones() : StimulusVector::all_zeros();
+        return check(b, zero_case);
+    }
+
+    bool all_valid_unary_cases(DesignBase* b) {
+        for (std::size_t i = 0; i < StimulusVector::size(); ++i) {
+            const StimulusVector v{generate_unary(i, is_compliment_)};
+            if (!check(b, v)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool check(DesignBase* b, const StimulusVector& v) {
+        bool rtl_is_unary = b->is_unary(v);
+        auto [beh_is_unary, beh_is_compliment] = is_unary(v);
+
+        if (rtl_is_unary == beh_is_unary) {
+            ++mismatches_;
+            return false;
+        }
+
+        // TODO: Check compliment.
+        return true;
+    }
+    bool is_compliment_;
+    std::size_t mismatches_;
+};
+
+class DesignRunner {
+public:
+    explicit DesignRunner() = default;
+    virtual ~DesignRunner() = default;
 
     virtual void run(DesignBase* d) = 0;
+
+    std::vector<std::unique_ptr<TestCase> > tcs_;
 };
 
 struct Options {
-    std::unique_ptr<Program> program;
+    std::unique_ptr<DesignRunner> r;
     std::string design_name = "e";
     std::size_t n = 1000;
 };
@@ -128,7 +382,7 @@ public:
     void run() {
         std::unique_ptr<DesignBase> d =
             DESIGN_REGISTRY.construct_design(opts_.design_name);
-        opts_.program->run(d.get());
+        // opts_.program->run(d.get());
     }
 
 private:
