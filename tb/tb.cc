@@ -99,15 +99,15 @@ void OptionsInitializer::build(std::vector<std::string_view>& args, std::ostream
 
 void OptionsInitializer::help() const {
   std::cout << R"(
-        Usage: Unary-/Thermometer admission circuit testbench driver.
-        
-        Arguments:
-        
-          -h/--help            : Print Options.
-             --list_designs    : List available designs
-          -s/--seed <integer>  : (Integer) Randomization seed
-          -v/--verbose         : Verbosity
-            )";
+Usage: Unary-/Thermometer admission circuit testbench driver.
+
+Arguments:
+
+  -h/--help            : Print Options.
+     --list_designs    : List available designs
+  -s/--seed <integer>  : (Integer) Randomization seed
+  -v/--verbose         : Verbosity
+  )";
   std::exit(1);
 }
 

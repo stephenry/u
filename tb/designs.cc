@@ -63,4 +63,7 @@ DECLARE_DESIGN(u);
 #include "VObj_e/Ve.h"
 DECLARE_DESIGN(e);
 
+#include "VObj_p/Vp.h"
+DECLARE_DESIGN(p);
+
 #undef DECLARE_DESIGN

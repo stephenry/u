@@ -38,5 +38,8 @@ set(U_RTL_SOURCES
     ${CMAKE_SOURCE_DIR}/rtl/u/u_mask.sv
     ${CMAKE_SOURCE_DIR}/rtl/u/u.sv)
 
-
+set(P_RTL_SOURCES
+    ${COMMON_RTL_SOURCES}
+    ${CMAKE_SOURCE_DIR}/rtl/p/p_ffs.sv
+    ${CMAKE_SOURCE_DIR}/rtl/p/p.sv)
 

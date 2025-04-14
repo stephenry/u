@@ -51,6 +51,18 @@ set(E_VERILATOR_ARGS
 
 verilate(e "${E_RTL_SOURCES}" "${E_VERILATOR_ARGS}" v_e_lib)
 
+set(P_VERILATOR_ARGS
+    "-cc"
+    "-Wall"
+    "--build"
+    "-GW=${RTL_PARAM__W}"
+    "-GP_ADMIT_COMPLIMENT_EN=1'b1"
+    "-I${CMAKE_SOURCE_DIR}/rtl"
+    "-unused-regexp UNUSED_*"
+    "--top-module p")
+
+verilate(p "${P_RTL_SOURCES}" "${P_VERILATOR_ARGS}" v_p_lib)
+
 set(TB_SOURCES
     "${CMAKE_SOURCE_DIR}/tb/common.h"
     "${CMAKE_SOURCE_DIR}/tb/random.h"
@@ -66,7 +78,7 @@ set(TB_SOURCES
 # Generate TB driver
 add_executable(tb ${TB_SOURCES})
 target_include_directories(tb PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(tb ${v_u_lib} ${v_e_lib})
+target_link_libraries(tb ${v_u_lib} ${v_e_lib} ${v_p_lib})
 set_target_properties(tb PROPERTIES CXX_STANDARD 20)
 target_compile_options(tb PRIVATE -Wall -Werror)
 
