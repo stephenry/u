@@ -131,7 +131,7 @@ class VBit : public VBitVector<1> {
   bool to_bool() const noexcept { return (v_[0] != 0); }
 };
 
-using StimulusVector = VBitVector<RTL_PARAM__W>;
+using StimulusVector = VBitVector<tb::cfg::W>;
 
 std::tuple<bool, bool> is_unary(const StimulusVector& b);
 

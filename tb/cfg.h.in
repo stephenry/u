@@ -30,8 +30,12 @@
 
 #include <cstddef>
 
-static constexpr std::size_t RTL_PARAM__W = @RTL_PARAM__W@;
+namespace tb::cfg {
 
-static constexpr bool P_ADMIT_COMPLIMENT_EN = true;
+static constexpr std::size_t W = @RTL_PARAM__W@;
+
+static constexpr bool ADMIT_COMPLIMENT_EN = true;
+
+} // namespace tb::cfg
 
 #endif

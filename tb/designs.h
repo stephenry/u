@@ -63,7 +63,7 @@ struct Design : DesignBase {
   std::unique_ptr<T> uut_;
 };
 
-class DesignRegistry {
+inline class DesignRegistry {
   class DesignBuilderBase {
    public:
     explicit DesignBuilderBase() = default;
@@ -98,9 +98,7 @@ class DesignRegistry {
 
  private:
   std::unordered_map<std::string, std::unique_ptr<DesignBuilderBase>> designs_;
-};
-
-inline DesignRegistry DESIGN_REGISTRY;
+} DESIGN_REGISTRY;
 
 }  // namespace tb
 
