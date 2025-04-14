@@ -25,21 +25,14 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
-#include "tb.h"
-
-#include <algorithm>
-#include <array>
 #include <iostream>
-#include <limits>
 #include <memory>
-#include <random>
-#include <string>
-#include <string_view>
-#include <tuple>
-#include <unordered_map>
 #include <vector>
 
-#include "verilated.h"
+#include "designs.h"
+#include "random.h"
+
+namespace tb {
 
 class DesignRunner {
  public:
@@ -47,14 +40,13 @@ class DesignRunner {
   virtual ~DesignRunner() = default;
 
   virtual void run(DesignBase* d) = 0;
-
-  std::vector<std::unique_ptr<TestCase>> tcs_;
 };
 
 struct Options {
   std::unique_ptr<DesignRunner> r;
   std::string design_name = "e";
   std::size_t n = 1000;
+  bool verbose = false;
 };
 
 class Test {
@@ -103,7 +95,6 @@ Options OptionsBuilder::build() const {
 }
 
 void OptionsBuilder::scan_arguments(Options& opts) const {
-  bool terminate = false;
   for (std::size_t i = 1; i < vs_.size(); i++) {
     if (vs_[i] == "-n") {
       opts.n = std::stoull(std::string{vs_.at(++i)});
@@ -111,10 +102,11 @@ void OptionsBuilder::scan_arguments(Options& opts) const {
       for (const std::string& design : DESIGN_REGISTRY.designs()) {
         std::cout << design << std::endl;
       }
-      terminate = true;
       std::exit(1);
     } else if (vs_[i] == "-s" || vs_[i] == "--seed") {
       RANDOM.seed(std::stoull(std::string{vs_.at(++i)}));
+    } else if (vs_[i] == "-v" || vs_[i] == "--verbose") {
+      opts.verbose = true;
     } else if (vs_[i] == "-h" || vs_[i] == "--help") {
       help();
     } else {
@@ -130,20 +122,22 @@ void OptionsBuilder::help() const {
         
         Arguments:
         
-          -n                : (Integer) Number of random trials
-          -h/--help         : Print Options.
-             --list_designs : List available designs
-          -s/--seed         : (Integer) Randomization seed
+          -h/--help            : Print Options.
+             --list_designs    : List available designs
+          -s/--seed <integer>  : (Integer) Randomization seed
+          -v/--verbose         : Verbosity
             )";
   std::exit(1);
 }
 
+}  // namespace tb
+
 int main(int argc, const char** argv) {
   int ret = 0;
   try {
-    const OptionsBuilder ob{argc, argv};
+    const tb::OptionsBuilder ob{argc, argv};
     auto b{ob.build()};
-  } catch (const OptionsBuilder::Exception& ex) {
+  } catch (const tb::OptionsBuilder::Exception& ex) {
     std::cout << "Error: " << ex.what() << std::endl;
     ret = 1;
   }

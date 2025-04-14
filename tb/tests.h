@@ -28,6 +28,12 @@
 #ifndef TB_TESTS_H
 #define TB_TESTS_H
 
+#include <memory>
+#include <string>
+#include <unordered_map>
+
+#include "stimulus.h"
+
 namespace tb {
 
 // Forwards:
@@ -36,7 +42,6 @@ class DesignBase;
 class TestCase {
  public:
   explicit TestCase() : mismatches_(0) {}
-
   virtual ~TestCase() = default;
 
   virtual bool pass() const noexcept { return (mismatches_ != 0); };
@@ -45,24 +50,13 @@ class TestCase {
   virtual bool run(DesignBase* b) = 0;
 
  protected:
-  bool check(DesignBase* b, const StimulusVector& v) {
-    bool rtl_is_unary = b->is_unary(v);
-    auto [beh_is_unary, beh_is_compliment] = is_unary(v);
-
-    if (rtl_is_unary == beh_is_unary) {
-      ++mismatches_;
-      return false;
-    }
-
-    // TODO: Check compliment.
-    return true;
-  }
+  bool check(DesignBase* b, const StimulusVector& v);
 
  private:
   std::size_t mismatches_;
 };
 
-class TestCaseRegistry {
+inline class TestCaseRegistry {
   struct TestCaseBuilderBase {
     explicit TestCaseBuilderBase() = default;
     virtual ~TestCaseBuilderBase() = default;
@@ -80,13 +74,7 @@ class TestCaseRegistry {
  public:
   explicit TestCaseRegistry() = default;
 
-  std::unique_ptr<TestCase> construct(const std::string& name) {
-    auto it = b_.find(name);
-    if (it == b_.end()) {
-      return nullptr;
-    }
-    return it->second->construct();
-  }
+  std::unique_ptr<TestCase> construct(const std::string& name);
 
   template <typename T>
   void add_testcase(const std::string& name) {
@@ -97,9 +85,7 @@ class TestCaseRegistry {
 
  private:
   std::unordered_map<std::string, std::unique_ptr<TestCaseBuilderBase> > b_;
-};
-
-inline TestCaseRegistry TC_REGISTRY;
+} TC_REGISTRY;
 
 }  // namespace tb
 

@@ -56,6 +56,8 @@ set(TB_SOURCES
     "${CMAKE_SOURCE_DIR}/tb/random.h"
     "${CMAKE_SOURCE_DIR}/tb/designs.h"
     "${CMAKE_SOURCE_DIR}/tb/designs.cc"
+    "${CMAKE_SOURCE_DIR}/tb/stimulus.h"
+    "${CMAKE_SOURCE_DIR}/tb/stimulus.cc"
     "${CMAKE_SOURCE_DIR}/tb/tests.h"
     "${CMAKE_SOURCE_DIR}/tb/tests.cc"
     "${CMAKE_SOURCE_DIR}/tb/tb.cc")
@@ -64,10 +66,10 @@ set(TB_SOURCES
 add_executable(tb ${TB_SOURCES})
 target_include_directories(tb PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tb ${v_u_lib} ${v_e_lib})
-set_target_properties(tb PROPERTIES
-    CXX_STANDARD 20)
+set_target_properties(tb PROPERTIES CXX_STANDARD 20)
+target_compile_options(tb PRIVATE -Wall -Werror)
 
-configure_file(tb.h.in tb.h)
+configure_file(cfg.h.in cfg.h)
 
 find_program(CLANG_FORMAT
     clang-format-14

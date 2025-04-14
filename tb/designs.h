@@ -28,7 +28,15 @@
 #ifndef TB_DESIGNS_H
 #define TB_DESIGNS_H
 
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "stimulus.h"
+
 namespace tb {
+
 struct DesignBase {
   virtual ~DesignBase() = default;
 
@@ -76,14 +84,7 @@ class DesignRegistry {
  public:
   explicit DesignRegistry() = default;
 
-  std::vector<std::string> designs() const {
-    std::vector<std::string> vs;
-    vs.reserve(designs_.size());
-    for (auto& [k, v] : designs_) {
-      vs.push_back(k);
-    }
-    return vs;
-  }
+  std::vector<std::string> designs() const;
 
   template <typename T>
   void add_design(const std::string& name) {
@@ -93,12 +94,7 @@ class DesignRegistry {
     }
   }
 
-  std::unique_ptr<DesignBase> construct_design(const std::string& name) {
-    if (auto it = designs_.find(name); it != designs_.end()) {
-      return it->second->construct();
-    }
-    return nullptr;
-  }
+  std::unique_ptr<DesignBase> construct_design(const std::string& name);
 
  private:
   std::unordered_map<std::string, std::unique_ptr<DesignBuilderBase>> designs_;
@@ -107,3 +103,5 @@ class DesignRegistry {
 inline DesignRegistry DESIGN_REGISTRY;
 
 }  // namespace tb
+
+#endif

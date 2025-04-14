@@ -28,6 +28,18 @@
 #ifndef TB_STIMULUS_H
 #define TB_STIMULUS_H
 
+#include <algorithm>
+#include <array>
+#include <tuple>
+
+#include "cfg.h"
+#include "common.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#include "verilated.h"
+#pragma GCC diagnostic pop
+
 namespace tb {
 
 template <std::size_t W, typename T = vluint8_t>
@@ -91,15 +103,17 @@ class VBitVector {
 
   void value(std::size_t i, value_type v) { v_[i] = v; }
 
-#define VERILATOR_PORT_TYPES(__func) __func(vluint32_t)
+// clang-format off
+#define VERILATOR_PORT_TYPES(__func) \
+  __func(vluint32_t)
 
 #define DECLARE_VERILATOR_PORT_CONVERTER(__type)                        \
   void to_verilated(__type& t) const noexcept {                         \
     to_verilated_impl(reinterpret_cast<vluint8_t*>(std::addressof(t))); \
   }
   VERILATOR_PORT_TYPES(DECLARE_VERILATOR_PORT_CONVERTER)
-
 #undef DECLARE_VERILATOR_PORT_CONVERTER
+  // clang-format on
 
  protected:
   void to_verilated_impl(value_type* b) const noexcept {
@@ -119,59 +133,12 @@ class VBit : public VBitVector<1> {
 
 using StimulusVector = VBitVector<RTL_PARAM__W>;
 
-template <std::size_t W>
-std::tuple<bool, bool> is_unary(const VBitVector<W>& b) {
-  std::size_t edges = 0, zeros = 0, ones = 0;
-  for (std::size_t i = 1; i < b.size(); ++i) {
-    if (b.bit(i)) {
-      ++ones;
-    } else {
-      ++zeros;
-    }
+std::tuple<bool, bool> is_unary(const StimulusVector& b);
 
-    if (b.bit(i) ^ b.bit(i - 1)) {
-      ++edges;
-    }
-  }
+StimulusVector generate_unary(std::size_t n, bool compliment = false);
 
-  bool is_compliment = b.bit(W - 1);
-  bool is_unary = (is_compliment ? (ones == W) : (zeros == W)) || (edges == 1);
+std::tuple<bool, StimulusVector> generate_non_unary(std::size_t rounds_n = 1);
 
-  return {is_unary, is_compliment};
-}
-
-StimulusVector generate_unary(std::size_t n, bool compliment = false) {
-  StimulusVector v;
-  for (std::size_t i = 0; i < v.size(); i++) {
-    if (i < n) {
-      v.bit(i, !compliment);
-    } else {
-      v.bit(i, compliment);
-    }
-  }
-  return v;
-}
-
-std::tuple<bool, StimulusVector> generate_non_unary(std::size_t rounds_n = 1) {
-  while (rounds_n--) {
-    StimulusVector v;
-    for (std::size_t i = 0; i < v.size_bytes_n(); i++) {
-      v.value(i, RANDOM.uniform<StimulusVector::value_type>());
-    }
-    v.clean();
-
-    if (auto [unary, compliment] = is_unary(v); unary) {
-      return {true, v};
-    }
-
-    // Otherwise, we've somehow hit a unary integer. Repeat until success.
-  }
-
-  // Pathological case where we've been unable to generate a non-unary case.
-  // Unlikely to ever to occur outside of exceptional cases.
-  return {false, StimulusVector{}};
-}
-
-} // namespace tb
+}  // namespace tb
 
 #endif

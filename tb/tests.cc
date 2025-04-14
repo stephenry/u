@@ -27,15 +27,41 @@
 
 #include "tests.h"
 
+#include "designs.h"
+#include "random.h"
+#include "stimulus.h"
+
 namespace tb {
 
+bool TestCase::check(DesignBase* b, const StimulusVector& v) {
+  bool rtl_is_unary = b->is_unary(v);
+  auto [beh_is_unary, beh_is_compliment] = is_unary(v);
+
+  if (rtl_is_unary == beh_is_unary) {
+    ++mismatches_;
+    return false;
+  }
+
+  // TODO: Check compliment.
+  return true;
+}
+
+std::unique_ptr<TestCase> TestCaseRegistry::construct(const std::string& name) {
+  auto it = b_.find(name);
+  if (it == b_.end()) {
+    return nullptr;
+  }
+  return it->second->construct();
+}
+
+// clang-format off
 #define DECLARE_TESTCASE(__name)                    \
   static const struct TestCaseRegisterer_##__name { \
     explicit TestCaseRegisterer_##__name() {        \
       TC_REGISTRY.add_testcase<__name>(#__name);    \
     }                                               \
-  } __tc_register_##__name {                        \
-  }
+  } __tc_register_##__name {}
+// clang-format on
 
 class FullyRandomizedTestCase : public TestCase {
  public:

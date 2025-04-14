@@ -27,16 +27,40 @@
 
 #include "designs.h"
 
+namespace tb {
+
+std::vector<std::string> DesignRegistry::designs() const {
+  std::vector<std::string> vs;
+  vs.reserve(designs_.size());
+  for (auto& [k, v] : designs_) {
+    vs.push_back(k);
+  }
+  return vs;
+}
+
+std::unique_ptr<DesignBase> DesignRegistry::construct_design(
+    const std::string& name) {
+  if (auto it = designs_.find(name); it != designs_.end()) {
+    return it->second->construct();
+  }
+  return nullptr;
+}
+
+}  // namespace tb
+
+// clang-format off
 #define DECLARE_DESIGN(__name)                            \
   static const struct DesignRegister##__name {            \
     explicit DesignRegister##__name() {                   \
       tb::DESIGN_REGISTRY.add_design<V##__name>(#__name); \
     }                                                     \
-  } __register_##__name {                                 \
-  }
+  } __register_##__name {}
+// clang-format on
 
 #include "VObj_u/Vu.h"
 DECLARE_DESIGN(u);
 
 #include "VObj_e/Ve.h"
 DECLARE_DESIGN(e);
+
+#undef DECLARE_DESIGN

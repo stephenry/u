@@ -25,44 +25,63 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
-#ifndef TB_RANDOM_H
-#define TB_RANDOM_H
+#include "stimulus.h"
 
-#include <limits>
-#include <random>
+#include "random.h"
 
-inline class Random {
- public:
-  using seed_type = std::mt19937::result_type;
+namespace tb {
 
-  explicit Random(seed_type s = seed_type{}) { seed(s); }
-
-  // Set seed of randomization engine.
-  void seed(seed_type s) { mt_.seed(s); }
-
-  // Generate a random integral type in range [lo, hi]
-  template <typename T>
-  T uniform(T hi = std::numeric_limits<T>::max(),
-            T lo = std::numeric_limits<T>::min()) {
-    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
-    if constexpr (std::is_integral_v<T>) {
-      // Integral type
-      std::uniform_int_distribution<T> d(lo, hi);
-      return d(mt_);
+std::tuple<bool, bool> is_unary(const StimulusVector& b) {
+  std::size_t edges = 0, zeros = 0, ones = 0;
+  for (std::size_t i = 1; i < b.size(); ++i) {
+    if (b.bit(i)) {
+      ++ones;
     } else {
-      // Floating-point type
-      std::uniform_real_distribution<T> d(lo, hi);
-      return d(mt_);
+      ++zeros;
+    }
+
+    if (b.bit(i) ^ b.bit(i - 1)) {
+      ++edges;
     }
   }
 
-  bool random_bool(float t_prob = 0.5f) {
-    std::bernoulli_distribution b(t_prob);
-    return b(mt_);
+  bool is_compliment = b.bit(b.size() - 1);
+  bool is_unary = (is_compliment ? (ones == b.size()) : (zeros == b.size())) ||
+                  (edges == 1);
+
+  return {is_unary, is_compliment};
+}
+
+StimulusVector generate_unary(std::size_t n, bool compliment) {
+  StimulusVector v;
+  for (std::size_t i = 0; i < v.size(); i++) {
+    if (i < n) {
+      v.bit(i, !compliment);
+    } else {
+      v.bit(i, compliment);
+    }
+  }
+  return v;
+}
+
+std::tuple<bool, StimulusVector> generate_non_unary(std::size_t rounds_n) {
+  while (rounds_n--) {
+    StimulusVector v;
+    for (std::size_t i = 0; i < v.size_bytes_n(); i++) {
+      v.value(i, RANDOM.uniform<StimulusVector::value_type>());
+    }
+    v.clean();
+
+    if (auto [unary, compliment] = is_unary(v); !unary) {
+      return {true, v};
+    }
+
+    // Otherwise, we've somehow hit a unary integer. Repeat until success.
   }
 
- private:
-  std::mt19937 mt_;
-} RANDOM;
+  // Pathological case where we've been unable to generate a non-unary case.
+  // Unlikely to ever to occur outside of exceptional cases.
+  return {false, StimulusVector{}};
+}
 
-#endif
+}  // namespace tb
