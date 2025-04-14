@@ -28,9 +28,11 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 #include "designs.h"
 #include "random.h"
+#include "tb.h"
 
 namespace tb {
 
@@ -42,81 +44,60 @@ class DesignRunner {
   virtual void run(DesignBase* d) = 0;
 };
 
-struct Options {
-  std::unique_ptr<DesignRunner> r;
-  std::string design_name = "e";
-  std::size_t n = 1000;
-  bool verbose = false;
-};
-
 class Test {
  public:
   void run() {
-    std::unique_ptr<DesignBase> d =
-        DESIGN_REGISTRY.construct_design(opts_.design_name);
     // opts_.program->run(d.get());
   }
 
- private:
-  const Options opts_;
 };
 
-struct OptionsBuilder {
-  struct Exception {
-    explicit Exception(const std::string& what) : what_(what) {}
-    const std::string& what() const { return what_; }
-
-   private:
-    std::string what_;
-  };
-
-  explicit OptionsBuilder(int argc, const char** argv);
-
-  Options build() const;
+struct OptionsInitializer {
+  explicit OptionsInitializer(int argc, const char** argv, std::ostream& os = std::cerr);
 
  private:
+  void build(std::vector<std::string_view>& args, std::ostream& os);
   void help() const;
-  void scan_arguments(Options& opts) const;
-
-  std::vector<std::string_view> vs_;
 };
 
-OptionsBuilder::OptionsBuilder(int argc, const char** argv)
-    : vs_(argv, argv + argc) {}
-
-Options OptionsBuilder::build() const {
-  if (vs_.empty()) {
-    return Options{};
-  }
-
-  Options opts;
-  scan_arguments(opts);
-  return opts;
+OptionsInitializer::OptionsInitializer(int argc, const char** argv, std::ostream& os) {
+  std::vector<std::string_view> vs{argv, argv + argc};
+  build(vs, os);
 }
 
-void OptionsBuilder::scan_arguments(Options& opts) const {
-  for (std::size_t i = 1; i < vs_.size(); i++) {
-    if (vs_[i] == "-n") {
-      opts.n = std::stoull(std::string{vs_.at(++i)});
-    } else if (vs_[i] == "--list_designs") {
+void OptionsInitializer::build(std::vector<std::string_view>& args, std::ostream& os) {
+  for (auto it = args.begin(); it != args.end(); ++it) {
+    std::string_view arg{*it};
+
+    // Helper lambda to check presence of next argument and fail if absent.
+    auto check_next_argument = [&](auto it) {
+      if (++it == args.end()) {
+        os << "Argument " << arg << " expects an argument." << std::endl;
+        std::exit(1);
+      }
+    };
+
+    // Parse arguments.
+    if (arg == "--list_designs") {
       for (const std::string& design : DESIGN_REGISTRY.designs()) {
         std::cout << design << std::endl;
       }
       std::exit(1);
-    } else if (vs_[i] == "-s" || vs_[i] == "--seed") {
-      RANDOM.seed(std::stoull(std::string{vs_.at(++i)}));
-    } else if (vs_[i] == "-v" || vs_[i] == "--verbose") {
-      opts.verbose = true;
-    } else if (vs_[i] == "-h" || vs_[i] == "--help") {
+    } else if (arg == "-s" || arg== "--seed") {
+      check_next_argument(it);
+      RANDOM.seed(std::stoull(std::string{*++it}));
+    } else if (arg == "-v" || arg == "--verbose") {
+      OPTIONS.verbose = true;
+    } else if (arg == "-h" || arg == "--help") {
       help();
     } else {
-      std::cout << "Invalid command line option: " << vs_[i] << "\n";
+      os << "Invalid command line option: " << arg << "\n";
       help();
     }
   }
 }
 
-void OptionsBuilder::help() const {
+void OptionsInitializer::help() const {
   std::cout << R"(
         Usage: Unary-/Thermometer admission circuit testbench driver.
         
@@ -133,13 +114,6 @@ void OptionsBuilder::help() const {
 }  // namespace tb
 
 int main(int argc, const char** argv) {
-  int ret = 0;
-  try {
-    const tb::OptionsBuilder ob{argc, argv};
-    auto b{ob.build()};
-  } catch (const tb::OptionsBuilder::Exception& ex) {
-    std::cout << "Error: " << ex.what() << std::endl;
-    ret = 1;
-  }
-  return ret;
+  tb::OptionsInitializer ob{argc, argv};
+  return 0;
 }

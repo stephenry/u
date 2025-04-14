@@ -25,17 +25,17 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
-#ifndef TB_CFG_H
-#define TB_CFG_H
+#ifndef TB_TB_H
+#define TB_TB_H
 
-#include <cstddef>
+namespace tb {
 
-namespace tb::cfg {
+inline struct Options {
 
-static constexpr std::size_t W = @RTL_PARAM__W@;
+    bool verbose = false;
 
-static constexpr bool ADMIT_COMPLIMENT_EN = true;
+} OPTIONS;
 
-} // namespace tb::cfg
+} // namespace tb
 
 #endif

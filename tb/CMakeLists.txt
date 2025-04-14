@@ -60,6 +60,7 @@ set(TB_SOURCES
     "${CMAKE_SOURCE_DIR}/tb/stimulus.cc"
     "${CMAKE_SOURCE_DIR}/tb/tests.h"
     "${CMAKE_SOURCE_DIR}/tb/tests.cc"
+    "${CMAKE_SOURCE_DIR}/tb/tb.h"
     "${CMAKE_SOURCE_DIR}/tb/tb.cc")
 
 # Generate TB driver
