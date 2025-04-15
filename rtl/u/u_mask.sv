@@ -81,6 +81,6 @@ end : u_mask_GEN
 //                                                                           //
 // ========================================================================= //
 
-assign o_match = MATCH_BIT ? (v != '1) : (v == '0);
+assign o_match = (v == {W{MATCH_BIT}});
 
 endmodule : u_mask
