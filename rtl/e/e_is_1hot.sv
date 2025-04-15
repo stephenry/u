@@ -46,8 +46,9 @@ module e_is_1hot #(
 //                                                                           //
 // ========================================================================= //
 
-logic [W - 1:0][W - 1:0]                hot2_v;
-logic [W - 1:0]                         hot1_v;
+logic [W - 1:0][W - 1:0]               x_matrix;
+logic [W - 1:0]                        y;
+logic                                  is_1hot;
 
 // ========================================================================= //
 //                                                                           //
@@ -57,24 +58,27 @@ logic [W - 1:0]                         hot1_v;
 
 // ------------------------------------------------------------------------- //
 //
-for (genvar j = 0; j < W; j++) begin : hot1_j_GEN
+for (genvar j = 0; j < W; j++) begin : x_matrix_j_GEN
 
-  for (genvar i = 0; i < W; i++) begin : hot1_i_GEN
+for (genvar i = 0; i < W; i++) begin : x_matrix_i_GEN
 
-assign hot2_v[j][i] = (j == i) ? i_x[i] : ((j > i) : 1'b1 : ~i_x[i]);
+assign x_matrix[j][i] = (j == i) ? i_x[i] : (~i_x[i]);
 
-  end : hot1_i_GEN
+end : x_matrix_i_GEN
 
-end : hot1_j_GEN
+end : x_matrix_j_GEN
 
 // ------------------------------------------------------------------------- //
 //
+for (genvar i = 0; i < W; i++) begin : y_i_GEN
 
-for (genvar i = 0; i < W; i++) begin : hot1_i_GEN
+assign y[i] = (x_matrix[i] == '1);
 
-assign hot1_v[i] = (hot2_v[i] == '1);
+end : y_i_GEN
 
-end : hot1_i_GEN
+// ------------------------------------------------------------------------- //
+//
+assign is_1hot = (y != '0);
 
 // ========================================================================= //
 //                                                                           //
@@ -82,6 +86,6 @@ end : hot1_i_GEN
 //                                                                           //
 // ========================================================================= //
 
-assign o_is_1hot = (hot1_v != '0);
+assign o_is_1hot = is_1hot;
 
 endmodule : e_is_1hot

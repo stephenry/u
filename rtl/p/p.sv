@@ -68,10 +68,10 @@ module p #(
 //                                                                           //
 // ========================================================================= //
 
-logic [W - 1:0]                        x_plus_one;
-logic                                  UNUSED__x_plus_one_cout;
-logic [W - 1:0]                        y;
-logic [W - 1:0]                        collision;
+logic [W - 1:0]                        x_inv;
+logic [W - 1:0]                        y_inc;
+logic                                  UNUSED__y_inc_cout;
+logic                                  is_1hot;
 logic                                  is_unary;
 
 // ========================================================================= //
@@ -80,13 +80,37 @@ logic                                  is_unary;
 //                                                                           //
 // ========================================================================= //
 
-assign {UNUSED__x_plus_one_cout, x_plus_one} = (i_x + 'b1);
+// ------------------------------------------------------------------------- //
+// When ADMIT_COMPLIMENT, conditionally invert input to convert complimented
+// encoding to normal-form.
+//
+// Complimented unary encoding: 111111100000000000
+//
+// Normal-form unary encoding:  000000011111111111
+//
+assign x_inv = P_ADMIT_COMPLIMENT_EN ? ({W{i_x[W - 1]}} ^ i_x) : i_x;
 
-p_ffs #(.W(W)) u_p_ffs (.i_x(i_x), .o_y(y));
+// ------------------------------------------------------------------------- //
+// Increment vector to produce one-one:
+//
+//  Unary input: 000000011111111111
+//
+//  Incremented: 000000100000000000
+//
+assign {UNUSED__y_inc_cout, y_inc} = (x_inv + 'b1);
 
-assign collision = (x_plus_one & y);
+// ------------------------------------------------------------------------- //
+// Detect whether result of increment is 1hot, indicating that original
+// word was unary encoded.
+//
+p_is_1hot #(.W(W)) u_p_is_1hot (.i_x(y_inc), .o_is_1hot(is_1hot));
 
-assign is_unary = P_ADMIT_COMPLIMENT_EN & (collision != '0);
+// ------------------------------------------------------------------------- //
+// is_unary iff result of increment is 1-hot and, either the original
+// word a normal-form unary encoding format, or not an we are configured
+// to admit complimented forms.
+//
+assign is_unary = is_1hot & (P_ADMIT_COMPLIMENT_EN | ~i_x[W - 1]);
 
 // ========================================================================= //
 //                                                                           //

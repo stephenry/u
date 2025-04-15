@@ -40,6 +40,6 @@ set(U_RTL_SOURCES
 
 set(P_RTL_SOURCES
     ${COMMON_RTL_SOURCES}
-    ${CMAKE_SOURCE_DIR}/rtl/p/p_ffs.sv
+    ${CMAKE_SOURCE_DIR}/rtl/p/p_is_1hot.sv
     ${CMAKE_SOURCE_DIR}/rtl/p/p.sv)
 
