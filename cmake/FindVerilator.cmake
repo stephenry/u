@@ -55,6 +55,7 @@ if (EXISTS $ENV{VERILATOR_ROOT})
   target_include_directories(vlib PUBLIC
     "${VERILATOR_ROOT}/include"
     "${VERILATOR_ROOT}/include/vltstd")
+  set_target_properties(vlib PROPERTIES CXX_STANDARD 14)
 
   macro(verilate design rtl_sources command_list target_out)
     set(command_file ${CMAKE_CURRENT_BINARY_DIR}/${design}_vc.f)
@@ -79,7 +80,7 @@ if (EXISTS $ENV{VERILATOR_ROOT})
     foreach (rtl_source ${rtl_sources})
       file(APPEND ${command_file} "${rtl_source}\n")
     endforeach ()
-  
+
     # Verilator command/target definitions.
     add_custom_command(
       OUTPUT ${generated_header} ${generated_library}
@@ -96,7 +97,7 @@ if (EXISTS $ENV{VERILATOR_ROOT})
       IMPORTED_LOCATION "${generated_library}"
       INTERFACE_INCLUDE_DIRECTORIES "${out_dir}"
       INTERFACE_LINK_LIBRARIES vlib)
-    
+
     # Generated library has dependency on Verilator runtime.
     add_dependencies(${generated_library_name} verilate_${design} vlib)
 

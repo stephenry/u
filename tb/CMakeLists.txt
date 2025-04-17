@@ -81,6 +81,12 @@ target_include_directories(tb PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tb ${v_u_lib} ${v_e_lib} ${v_p_lib})
 set_target_properties(tb PROPERTIES CXX_STANDARD 20)
 target_compile_options(tb PRIVATE -Wall -Werror)
+if (${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
+  # weak symbols used by Verilator set to dynamic lookup on MAC OS
+  # (see: verilated.mk; LDFLAGS)
+  target_link_options(tb PRIVATE
+    -Wl,-U,__Z15vl_time_stamp64v,-U,__Z13sc_time_stampv)
+endif ()
 
 configure_file(cfg.h.in cfg.h)
 

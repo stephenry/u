@@ -37,7 +37,8 @@
 
 namespace tb {
 
-struct DesignBase {
+class DesignBase {
+  public:
   virtual ~DesignBase() = default;
 
   // Evaluate verilated module with stimulus 'v' and return admission
