@@ -95,7 +95,7 @@ class FullyRandomizedTestCase : public TestCase {
   // Parameters:
 
   // Trial count
-  std::size_t param_n = 0;
+  std::size_t param_n = 100;
 
   // Probability of a unary-encoding value.
   float param_unary_prob = 0.1f;

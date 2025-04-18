@@ -52,7 +52,12 @@ std::unique_ptr<DesignBase> DesignRegistry::construct_design(
 }
 
 template <typename T>
-concept VUnaryModule = requires(T t) { t.eval(); };
+concept VUnaryModule = requires(T t) { 
+  { t.eval() } -> std::same_as<void>; 
+  t.i_x;
+  t.o_is_unary;
+  t.o_is_compliment;
+};
 
 template <VUnaryModule T>
 class Design : public DesignBase {

@@ -28,9 +28,6 @@
 cmake_minimum_required(VERSION 3.22)
 project(u)
 
-set(RTL_PARAM__W 32)
-
-
 list(APPEND CMAKE_MODULE_PATH
  ${CMAKE_SOURCE_DIR}/rtl
  ${CMAKE_SOURCE_DIR}/cmake
@@ -38,4 +35,5 @@ list(APPEND CMAKE_MODULE_PATH
 
 include(FindVerilator)
 
+enable_testing()
 add_subdirectory(tb)

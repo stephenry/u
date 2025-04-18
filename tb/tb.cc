@@ -137,7 +137,7 @@ void DriverRuntime::build(std::vector<std::string_view>& args,
       for (const std::string& design : DESIGN_REGISTRY.designs()) {
         std::cout << design << std::endl;
       }
-      std::exit(1);
+      std::exit(0);
     } else if (arg == "-s" || arg == "--seed") {
       check_next_argument();
       RANDOM.seed(std::stoull(std::string{args[++i]}));

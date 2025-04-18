@@ -32,9 +32,9 @@
 
 namespace tb::cfg {
 
-static constexpr std::size_t W = @RTL_PARAM__W@;
+static constexpr std::size_t W = @CXX_PARAM__W@;
 
-static constexpr bool ADMIT_COMPLIMENT_EN = true;
+static constexpr bool ADMIT_COMPLIMENT = @CXX_PARAM__ADMIT_COMPLIMENT@;
 
 } // namespace tb::cfg
 

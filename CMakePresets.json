@@ -1,0 +1,23 @@
+{
+    "version": 9,
+    "configurePresets": [
+        {
+            "name": "w8",
+            "generator": "Ninja",
+            "binaryDir": "build-${presetName}",
+            "cacheVariables": {
+                "RTL_PARAM__W": "32",
+                "RTL_PARAM__ADMIT_COMPLIMENT": false
+            }
+        },
+        {
+            "name": "w8c",
+            "generator": "Ninja",
+            "binaryDir": "build-${presetName}",
+            "cacheVariables": {
+                "RTL_PARAM__W": "32",
+                "RTL_PARAM__ADMIT_COMPLIMENT": true
+            }
+        }
+    ]
+}

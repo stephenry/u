@@ -169,6 +169,7 @@ class MessageFormatter<bool> {
 #define U_LOG_WARNING(...) U_LOG_LEVEL(Log::Level::Warning, __VA_ARGS__)
 #define U_LOG_ERROR(...) U_LOG_LEVEL(Log::Level::Error, __VA_ARGS__)
 #define U_LOG_FATAL(...) U_LOG_LEVEL(Log::Level::Fatal, __VA_ARGS__)
+
 // clang-format on
 
 }  // namespace tb

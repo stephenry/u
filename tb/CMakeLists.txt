@@ -27,6 +27,9 @@
 
 include(rtl)
 
+verilate_bool_to_logic(
+    RTL_PARAM__ADMIT_COMPLIMENT, RTL_PARAM__ADMIT_COMPLIMENT_LOGIC)
+
 # 'U' Design
 #
 set(U_VERILATOR_ARGS
@@ -34,7 +37,7 @@ set(U_VERILATOR_ARGS
     "-Wall"
     "--build"
     "-GW=${RTL_PARAM__W}"
-    "-GP_ADMIT_COMPLIMENT_EN=1'b1"
+    "-GP_ADMIT_COMPLIMENT_EN=${RTL_PARAM__ADMIT_COMPLIMENT_LOGIC}"
     "-I${CMAKE_SOURCE_DIR}/rtl"
     "--top-module u")
 
@@ -45,7 +48,7 @@ set(E_VERILATOR_ARGS
     "-Wall"
     "--build"
     "-GW=${RTL_PARAM__W}"
-    "-GP_ADMIT_COMPLIMENT_EN=1'b1"
+    "-GP_ADMIT_COMPLIMENT_EN=${RTL_PARAM__ADMIT_COMPLIMENT_LOGIC}"
     "-I${CMAKE_SOURCE_DIR}/rtl"
     "--top-module e")
 
@@ -56,7 +59,7 @@ set(P_VERILATOR_ARGS
     "-Wall"
     "--build"
     "-GW=${RTL_PARAM__W}"
-    "-GP_ADMIT_COMPLIMENT_EN=1'b1"
+    "-GP_ADMIT_COMPLIMENT_EN=${RTL_PARAM__ADMIT_COMPLIMENT_LOGIC}"
     "-I${CMAKE_SOURCE_DIR}/rtl"
     "-unused-regexp UNUSED_*"
     "--top-module p")
@@ -91,6 +94,18 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
     -Wl,-U,__Z15vl_time_stamp64v,-U,__Z13sc_time_stampv)
 endif ()
 
+macro (cmake_bool_to_cxx var out)
+  if (${var})
+    set(${out} "true")
+  else ()
+    set(${out} "false")
+  endif ()
+endmacro ()
+
+set(CXX_PARAM__W ${RTL_PARAM__W})
+
+set(CXX_PARAM__ADMIT_COMPLIMENT ${RTL_PARAM__ADMIT_COMPLIMENT})
+cmake_bool_to_cxx(${RTL_PARAM__ADMIT_COMPLIMENT}, CXX_PARAM__ADMIT_COMPLIMENT)
 configure_file(cfg.h.in cfg.h)
 
 find_program(CLANG_FORMAT
@@ -101,3 +116,10 @@ if (CLANG_FORMAT)
     add_custom_target(clang-format
         COMMAND ${CLANG_FORMAT} -i ${TB_SOURCES})
 endif()
+
+add_test(NAME test
+  COMMAND $<TARGET_FILE:tb>
+    -t d=u,t=FullyRandomizedTestCase,t=DirectExhaustiveTestCase
+    -t d=e,t=FullyRandomizedTestCase,t=DirectExhaustiveTestCase
+    -t d=p,t=FullyRandomizedTestCase,t=DirectExhaustiveTestCase
+  )
