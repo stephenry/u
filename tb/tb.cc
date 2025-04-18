@@ -41,25 +41,15 @@ class Scenario {
  public:
   explicit Scenario() = default;
 
-  bool has_design() const noexcept {
-    return (d_ != nullptr);
-  }
+  bool has_design() const noexcept { return (d_ != nullptr); }
 
-  bool has_test() const noexcept {
-    return (t_ != nullptr);
-  }
+  bool has_test() const noexcept { return (t_ != nullptr); }
 
-  bool is_valid() const noexcept {
-    return (has_design() && has_test());
-  }
+  bool is_valid() const noexcept { return (has_design() && has_test()); }
 
-  void set(std::unique_ptr<DesignBase>&& d) {
-    d_ = std::move(d);
-  }
+  void set(std::unique_ptr<DesignBase>&& d) { d_ = std::move(d); }
 
-  void set(std::unique_ptr<TestCase>&& t) {
-    t_ = std::move(t);
-  }
+  void set(std::unique_ptr<TestCase>&& t) { t_ = std::move(t); }
 
   TestCase* test() noexcept { return t_.get(); }
 
@@ -73,17 +63,16 @@ class Scenario {
   std::unique_ptr<TestCase> t_;
 };
 
-void Scenario::run() {
-  t_->run(d_.get());
+void Scenario::run() { 
+  U_LOG_INFO("Scenario: design=\"", d_->name(), "\" test=\"", t_->name(), "\"");
+  t_->run(d_.get()); 
 }
 
 class Program {
  public:
   explicit Program() = default;
 
-  void add(std::unique_ptr<Scenario>&& s) {
-    s_.push_back(std::move(s));
-  }
+  void add(std::unique_ptr<Scenario>&& s) { s_.push_back(std::move(s)); }
 
   void run();
 
@@ -125,22 +114,22 @@ DriverRuntime::DriverRuntime(int argc, const char** argv, std::ostream& os) {
   build(vs, os);
 }
 
-int DriverRuntime::run() const { 
+int DriverRuntime::run() const {
   p_->run();
-  return status(); 
+  return status();
 }
 
 void DriverRuntime::build(std::vector<std::string_view>& args,
                           std::ostream& os) {
-  for (auto it = args.begin(); it != args.end(); ++it) {
-    std::string_view arg{*it};
+  for (std::size_t i = 1; i < args.size(); ++i) {
+    const std::string_view arg{args[i]};
 
     // Helper lambda to check presence of next argument and fail if absent.
-    auto check_next_argument = [&](auto it) {
-      if (++it == args.end()) {
-        os << "Argument " << arg << " expects an argument." << std::endl;
-        std::exit(1);
-      }
+    auto check_next_argument = [&]() {
+      if ((i + 1) < args.size()) return;
+
+      os << "Argument " << arg << " expects an argument." << std::endl;
+      std::exit(1);
     };
 
     // Parse arguments.
@@ -150,13 +139,18 @@ void DriverRuntime::build(std::vector<std::string_view>& args,
       }
       std::exit(1);
     } else if (arg == "-s" || arg == "--seed") {
-      check_next_argument(it);
-      RANDOM.seed(std::stoull(std::string{*++it}));
+      check_next_argument();
+      RANDOM.seed(std::stoull(std::string{args[++i]}));
     } else if (arg == "-v" || arg == "--verbose") {
-      OPTIONS.verbose = true;
+      check_next_argument();
+      OPTIONS.verbosity_n = stoull(std::string{args[++i]});
+    } else if (arg == "-d" || arg == "--debug") {
+      OPTIONS.log = std::make_unique<Log>();
+      OPTIONS.log->set_debug(true);
+      OPTIONS.debug = true;
     } else if (arg == "-t" || arg == "--test") {
-      check_next_argument(it);
-      parse_test_arg_string(*++it);
+      check_next_argument();
+      parse_test_arg_string(args[++i]);
     } else if (arg == "--adcomp") {
       OPTIONS.admits_compliment = true;
     } else if (arg == "-h" || arg == "--help") {
@@ -178,13 +172,13 @@ void DriverRuntime::parse_test_arg_string(const std::string_view vs) {
       if (!ok) {
         // throw: malformed argument list.
       }
-      auto design = DESIGN_REGISTRY.construct_design(*it);
+      auto design = DESIGN_REGISTRY.construct_design(v);
       if (!design) {
         // throw: unknown design name.
       }
       // Design is constructed, add to current scenario.
       s->set(std::move(design));
-    } else if (it->starts_with("t="), it->starts_with("tests")) {
+    } else if (it->starts_with("t=") || it->starts_with("test=")) {
       // Construct new test for design.
       if (!s->has_design()) {
         // Throw: no design defined. Cannot attach test.
@@ -193,7 +187,7 @@ void DriverRuntime::parse_test_arg_string(const std::string_view vs) {
       if (!ok) {
         // throw: malformed argument list.
       }
-      auto test = TEST_REGISTRY.construct_test(*it);
+      auto test = TEST_REGISTRY.construct_test(v);
       if (!test) {
         // throw: unknown testname.
       }

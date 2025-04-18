@@ -64,6 +64,8 @@ set(P_VERILATOR_ARGS
 verilate(p "${P_RTL_SOURCES}" "${P_VERILATOR_ARGS}" v_p_lib)
 
 set(TB_SOURCES
+    "${CMAKE_SOURCE_DIR}/tb/log.h"
+    "${CMAKE_SOURCE_DIR}/tb/log.cc"
     "${CMAKE_SOURCE_DIR}/tb/common.cc"
     "${CMAKE_SOURCE_DIR}/tb/common.h"
     "${CMAKE_SOURCE_DIR}/tb/random.h"

@@ -25,26 +25,12 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
-#ifndef TB_TB_H
-#define TB_TB_H
-
-#include "common.h"
 #include "log.h"
 
 namespace tb {
 
-inline struct Options {
-  bool admits_compliment = false;
-
-  std::size_t verbosity_n = 0;
-
-  // Debug-mode (maximum verbosity and assertions enabled).
-  bool debug = false;
-
-  std::unique_ptr<Log> log;
-
-} OPTIONS;
+void Log::message(const Message& m) {
+    os_ << m.msg.str() << std::endl;
+}
 
 }  // namespace tb
-
-#endif

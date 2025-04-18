@@ -41,13 +41,16 @@ class DesignBase;
 
 class TestCase {
  public:
-  explicit TestCase() : mismatches_(0) {}
+  explicit TestCase(const std::string& name)
+    :  name_(name), mismatches_(0)
+  {}
   virtual ~TestCase() = default;
 
+  virtual const std::string& name() const noexcept { return name_; }
   virtual bool pass() const noexcept { return (mismatches_ != 0); };
   virtual bool fail() const noexcept { return !pass(); }
 
-  virtual void config(const std::string_view& sv) { }
+  virtual void config(const std::string_view& sv) {}
 
   virtual bool run(DesignBase* b) = 0;
 
@@ -55,6 +58,7 @@ class TestCase {
   bool check(DesignBase* b, const StimulusVector& v);
 
  private:
+  std::string name_;
   std::size_t mismatches_;
 };
 

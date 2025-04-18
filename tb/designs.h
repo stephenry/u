@@ -39,10 +39,8 @@ namespace tb {
 
 class DesignBase {
  public:
-  explicit DesignBase(const std::string& name)
-    : name_(name)
-  {}
-  
+  explicit DesignBase(const std::string& name) : name_(name) {}
+
   virtual ~DesignBase() = default;
 
   // Design name
@@ -52,13 +50,13 @@ class DesignBase {
   // decision.
   virtual bool is_unary(const StimulusVector& v) noexcept = 0;
 
-private:
+ private:
   // Design name.
   std::string name_;
 };
 
 inline class DesignRegistry {
-  public:
+ public:
   class DesignBuilderBase {
    public:
     explicit DesignBuilderBase() = default;
@@ -74,7 +72,7 @@ inline class DesignRegistry {
   void add(const std::string& name, std::unique_ptr<DesignBuilderBase>&& d) {
     if (designs_.find(name) == designs_.end()) {
       designs_[name] = std::move(d);
-    }  
+    }
   }
 
   std::unique_ptr<DesignBase> construct_design(const std::string& name);

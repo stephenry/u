@@ -31,9 +31,11 @@
 #include <algorithm>
 #include <array>
 #include <tuple>
+#include <ostream>
 
 #include "cfg.h"
 #include "common.h"
+#include "tb.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-compare"
@@ -66,6 +68,16 @@ class VBitVector {
   explicit VBitVector(vluint8_t* d, std::size_t n) {
     clear();
     std::copy_n(d, std::min(n, size_bytes_n()), v_.data());
+  }
+
+  void render_to(std::ostream& os) const {
+    os << W << "'b";
+    for (std::size_t i = 0; i < W; i++) {
+      if ((i != 0) && (i % 8 == 0)) {
+        os << '_';
+      }
+      os << (bit(W - i - 1) ? '1' : '0');
+    }
   }
 
   static constexpr std::size_t size() noexcept { return size_in_bits_n; }
@@ -122,6 +134,23 @@ class VBitVector {
   std::array<value_type, size_in_bytes_n> v_;
 };
 
+template<std::size_t W, typename T>
+class MessageFormatter<VBitVector<W, T>> {
+public:
+  explicit MessageFormatter(MessageRenderer& r, const VBitVector<W, T>& t)
+    : r_(r), t_(t)
+  {}
+
+  void render() const {
+    std::ostream& os{r_.msg().msg};
+    t_.render_to(os);
+  }
+
+private:
+  MessageRenderer& r_;
+  const VBitVector<W,T>& t_;
+};
+
 class VBit : public VBitVector<1> {
  public:
   static VBit from_verilated(vluint8_t t) { return VBit{t != 0}; }
@@ -129,6 +158,21 @@ class VBit : public VBitVector<1> {
   explicit VBit(bool b) { v_[0] = b ? 0b1 : 0b0; }
 
   bool to_bool() const noexcept { return (v_[0] != 0); }
+};
+
+template <>
+class MessageFormatter<VBit> {
+ public:
+  explicit MessageFormatter(MessageRenderer& r, const VBit& t) : r_(r), t_(t) {}
+
+  void render() const {
+    std::ostringstream& os{r_.msg().msg};
+    os << (t_.to_bool() ? "1'b1" : "1'b0");
+  }
+
+ private:
+  MessageRenderer& r_;
+  const VBit& t_;
 };
 
 using StimulusVector = VBitVector<tb::cfg::W>;

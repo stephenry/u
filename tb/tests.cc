@@ -30,11 +30,14 @@
 #include "designs.h"
 #include "random.h"
 #include "stimulus.h"
+#include "log.h"
 
 namespace tb {
 
 bool TestCase::check(DesignBase* b, const StimulusVector& v) {
   bool rtl_is_unary = b->is_unary(v);
+  U_LOG_INFO("RTL: ", v, " is_unary=", rtl_is_unary);
+
   auto [beh_is_unary, beh_is_compliment] = is_unary(v);
 
   if (rtl_is_unary == beh_is_unary) {
@@ -46,7 +49,8 @@ bool TestCase::check(DesignBase* b, const StimulusVector& v) {
   return true;
 }
 
-std::unique_ptr<TestCase> TestCaseRegistry::construct_test(const std::string& name) {
+std::unique_ptr<TestCase> TestCaseRegistry::construct_test(
+    const std::string& name) {
   auto it = b_.find(name);
   if (it == b_.end()) {
     return nullptr;
@@ -54,7 +58,8 @@ std::unique_ptr<TestCase> TestCaseRegistry::construct_test(const std::string& na
   return it->second->construct();
 }
 
-std::unique_ptr<TestCase> TestCaseRegistry::construct_test(const std::string_view& name) {
+std::unique_ptr<TestCase> TestCaseRegistry::construct_test(
+    const std::string_view& name) {
   return construct_test(std::string{name});
 }
 
@@ -69,7 +74,9 @@ std::unique_ptr<TestCase> TestCaseRegistry::construct_test(const std::string_vie
 
 class FullyRandomizedTestCase : public TestCase {
  public:
-  explicit FullyRandomizedTestCase() = default;
+  explicit FullyRandomizedTestCase()
+    : TestCase("FullyRandomizedTestCase")
+  {}
 
   // Parameters:
 
@@ -119,7 +126,8 @@ DECLARE_TESTCASE(FullyRandomizedTestCase);
 class DirectedExhaustiveTestCase : public TestCase {
  public:
   explicit DirectedExhaustiveTestCase(bool is_compliment = false)
-      : is_compliment_(is_compliment) {}
+      : TestCase("DirectedExhaustiveTestCase")
+      , is_compliment_(is_compliment) {}
 
   bool run(DesignBase* b) override {
     // Check boundary all-one/-zero case.

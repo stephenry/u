@@ -32,6 +32,9 @@
 #include <tuple>
 #include <vector>
 
+#define U_MACRO_BEGIN  do {
+#define U_MACRO_END    } while (false)
+
 namespace tb {
 
 constexpr std::size_t ceil(std::size_t n, std::size_t d) {

@@ -39,13 +39,14 @@ std::vector<std::string_view> split(const std::string_view& s,
     if (begin == end) {
       return;
     }
-    vs.push_back(s.substr(begin, end - begin + 1));
+    vs.push_back(s.substr(begin, end - begin));
   };
 
   size_type begin = 0, end = s.find(sep);
   while (end != std::string_view::npos) {
     try_add_string_piece(begin, end);
 
+    begin = end + 1;
     end = s.find(sep, begin);
   }
   try_add_string_piece(begin, end);

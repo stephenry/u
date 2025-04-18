@@ -47,24 +47,23 @@ std::unique_ptr<DesignBase> DesignRegistry::construct_design(
 }
 
 std::unique_ptr<DesignBase> DesignRegistry::construct_design(
-  const std::string_view& name) {
+    const std::string_view& name) {
   return construct_design(std::string{name});
 }
 
-template<typename T>
-concept VUnaryModule = requires(T t) {
-  t.eval();
-};
+template <typename T>
+concept VUnaryModule = requires(T t) { t.eval(); };
 
 template <VUnaryModule T>
 class Design : public DesignBase {
  public:
-  explicit Design(const std::string& name)
-    : DesignBase(name) {
-     uut_ = std::make_unique<T>();
+  explicit Design(const std::string& name) : DesignBase(name) {
+    uut_ = std::make_unique<T>();
   }
 
   bool is_unary(const StimulusVector& v) noexcept override {
+    U_LOG_DEBUG("Evaluating RTL...");
+
     // Drive input
     v.to_verilated(uut_->i_x);
     // Evaluate
@@ -79,18 +78,17 @@ class Design : public DesignBase {
 
 template <typename T>
 class DesignBuilder : public tb::DesignRegistry::DesignBuilderBase {
-  public:
-  explicit DesignBuilder(const std::string& name)
-    : name_(name)
-    {}
+ public:
+  explicit DesignBuilder(const std::string& name) : name_(name) {}
   std::unique_ptr<DesignBase> construct() const override {
     return std::unique_ptr<DesignBase>(new Design<T>(name_));
   }
-private:
+
+ private:
   std::string name_;
 };
 
-} // namespace tb
+}  // namespace tb
 
 // clang-format off
 #define DECLARE_DESIGN(__name)                            \
