@@ -32,7 +32,9 @@ namespace tb {
 
 inline struct Options {
 
-    bool verbose = false;
+  bool admits_compliment = false;
+
+  bool verbose = false;
 
 } OPTIONS;
 

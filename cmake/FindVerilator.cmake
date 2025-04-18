@@ -74,6 +74,7 @@ if (EXISTS $ENV{VERILATOR_ROOT})
     foreach (arg ${command_list})
       file(APPEND ${command_file} "${arg}\n")
     endforeach ()
+
     # Fix-up object directory
     file(APPEND ${command_file} "--Mdir ${out_dir}\n")
 

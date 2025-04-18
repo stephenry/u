@@ -88,6 +88,8 @@ void OptionsInitializer::build(std::vector<std::string_view>& args, std::ostream
       RANDOM.seed(std::stoull(std::string{*++it}));
     } else if (arg == "-v" || arg == "--verbose") {
       OPTIONS.verbose = true;
+    } else if (arg == "--adcomp") {
+      OPTIONS.admits_compliment = true;
     } else if (arg == "-h" || arg == "--help") {
       help();
     } else {
@@ -105,6 +107,7 @@ Arguments:
 
   -h/--help            : Print Options.
      --list_designs    : List available designs
+     --adcomp          : Admits compliment
   -s/--seed <integer>  : (Integer) Randomization seed
   -v/--verbose         : Verbosity
   )";
