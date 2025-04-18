@@ -3,10 +3,11 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: dev
-    credentials:
-      username: ${{ github.actor }}
-      password: ${{ secrets.github_token }}
+    container: 
+      image: dev
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
     steps:
       - name: test_w32
         run: |
