@@ -26,7 +26,7 @@ An increment operation performed by a CLA has a sub-linear complexity on W. The 
 
 ## Instructions
 
-The [Dockerfile](./.devcontainer/Dockerfile) is the recommended development environment for 'u'. Alternatively, 'u' can be built standalone using a recent version of Verilator (developed using v5.034). An additional environment variable 'VERILATOR_ROOT' pointing to the root of a Verilator installation is required. 
+The [Dockerfile](./.devcontainer/Dockerfile) is the recommended development environment for 'u'. Alternatively, 'u' can be built standalone using a recent version of Verilator (developed using v5.034). In this case, an additional environment variable 'VERILATOR_ROOT' pointing to the root of a Verilator installation is required. 
 
 ```shell
 # Compile library for some pre-defined configuration (W=32)
