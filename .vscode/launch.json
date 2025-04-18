@@ -8,14 +8,19 @@
             "name": "debug-simple",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${command:cmake.launchTargetPath}",
+            "program": "${workspaceRoot}/build-w32/tb/tb",
             "args":[
                 "-t", "d=u",
                 "-t", "t=DirectedExhaustiveTestCase",
                 "-t", "t=FullyRandomizedTestCase"
             ],
-            "cwd": "${workspaceFolder}",
-            "MIMode": "lldb"
+            "linux": {
+                "MIMode": "gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "cwd":"${workspaceFolder}"
           }
     ]
 }

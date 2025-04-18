@@ -25,40 +25,12 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
-#ifndef TB_COMMON_H
-#define TB_COMMON_H
+#ifndef TB_VERILATOR_H
+#define TB_VERILATOR_H
 
-#include <string_view>
-#include <tuple>
-#include <vector>
-#include <ostream>
-#include "vsupport.h"
-
-// clang-format off
-#define U_MACRO_BEGIN   do {
-#define U_MACRO_END     } while (false)
-// clang-format on
-
-namespace tb {
-
-constexpr std::size_t ceil(std::size_t n, std::size_t d) {
-  return (n + (d - 1)) / d;
-}
-
-template <typename T, std::size_t W>
-constexpr T mask() {
-  static_assert(W < (8 * sizeof(T)));
-  return (T{1} << W) - T{1};
-}
-
-void to_hex(std::ostream& os, vluint8_t v, bool upper = false);
-
-std::vector<std::string_view> split(
-  const std::string_view& s, std::string_view::value_type sep = ',');
-
-std::tuple<bool, std::string_view, std::string_view> split_kv(
-    const std::string_view& sv);
-
-}  // namespace tb
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#include "verilated.h"
+#pragma GCC diagnostic pop
 
 #endif

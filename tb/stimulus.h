@@ -36,11 +36,7 @@
 #include "cfg.h"
 #include "common.h"
 #include "tb.h"
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#include "verilated.h"
-#pragma GCC diagnostic pop
+#include "vsupport.h"
 
 namespace tb {
 

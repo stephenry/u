@@ -3,7 +3,7 @@
     "configurePresets": [
         {
             "name": "w32",
-            "generator": "Ninja",
+            "generator": "Unix Makefiles",
             "binaryDir": "build-${presetName}",
             "cacheVariables": {
                 "RTL_PARAM__W": "32",
@@ -12,7 +12,7 @@
         },
         {
             "name": "w32c",
-            "generator": "Ninja",
+            "generator": "Unix Makefiles",
             "binaryDir": "build-${presetName}",
             "cacheVariables": {
                 "RTL_PARAM__W": "32",
@@ -21,7 +21,7 @@
         },
         {
             "name": "w4",
-            "generator": "Ninja",
+            "generator": "Unix Makefiles",
             "binaryDir": "build-${presetName}",
             "cacheVariables": {
                 "RTL_PARAM__W": "4",
@@ -30,7 +30,7 @@
         },
         {
             "name": "w4c",
-            "generator": "Ninja",
+            "generator": "Unix Makefiles",
             "binaryDir": "build-${presetName}",
             "cacheVariables": {
                 "RTL_PARAM__W": "4",
@@ -40,7 +40,7 @@
         ,
         {
             "name": "w1024",
-            "generator": "Ninja",
+            "generator": "Unix Makefiles",
             "binaryDir": "build-${presetName}",
             "cacheVariables": {
                 "RTL_PARAM__W": "1024",
@@ -49,7 +49,7 @@
         },
         {
             "name": "w1024c",
-            "generator": "Ninja",
+            "generator": "Unix Makefiles",
             "binaryDir": "build-${presetName}",
             "cacheVariables": {
                 "RTL_PARAM__W": "1024",
