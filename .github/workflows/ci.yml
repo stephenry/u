@@ -9,6 +9,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
     steps:
+      - uses: actions/checkout@4
       - name: test_w32
         run: |
           cmake . --preset w32
