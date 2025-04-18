@@ -43,29 +43,36 @@ class Scenario {
 
   bool has_design() const noexcept { return (d_ != nullptr); }
 
-  bool has_test() const noexcept { return (t_ != nullptr); }
+  bool has_test() const noexcept { return !ts_.empty(); }
 
   bool is_valid() const noexcept { return (has_design() && has_test()); }
 
   void set(std::unique_ptr<DesignBase>&& d) { d_ = std::move(d); }
 
-  void set(std::unique_ptr<TestCase>&& t) { t_ = std::move(t); }
-
-  TestCase* test() noexcept { return t_.get(); }
+  void add(std::unique_ptr<TestCase>&& t) { ts_.push_back(std::move(t)); }
 
   void run();
+
+  TestCase* head() const {
+    if (ts_.empty())
+      return nullptr;
+
+    return ts_.back().get();
+  }
 
  private:
   // Unit under test.
   std::unique_ptr<DesignBase> d_;
 
   // Tests to run on design.
-  std::unique_ptr<TestCase> t_;
+  std::vector<std::unique_ptr<TestCase> > ts_;
 };
 
 void Scenario::run() {
-  U_LOG_INFO("Scenario: design=\"", d_->name(), "\" test=\"", t_->name(), "\"");
-  t_->run(d_.get());
+  for (auto& t : ts_) {
+    U_LOG_INFO("Scenario: design=\"", d_->name(), "\" test=\"", t->name(), "\"");
+    t->run(d_.get());
+  }
 }
 
 class Program {
@@ -112,6 +119,7 @@ DriverRuntime::DriverRuntime(int argc, const char** argv, std::ostream& os) {
   p_ = std::make_unique<Program>();
   std::vector<std::string_view> vs{argv, argv + argc};
   build(vs, os);
+  U_LOG_INFO("Command line: ", join(vs.begin(), vs.end()));
 }
 
 int DriverRuntime::run() const {
@@ -151,8 +159,6 @@ void DriverRuntime::build(std::vector<std::string_view>& args,
     } else if (arg == "-t" || arg == "--test") {
       check_next_argument();
       parse_test_arg_string(args[++i]);
-    } else if (arg == "--adcomp") {
-      OPTIONS.admits_compliment = true;
     } else if (arg == "-h" || arg == "--help") {
       help();
     } else {
@@ -192,7 +198,7 @@ void DriverRuntime::parse_test_arg_string(const std::string_view vs) {
         // throw: unknown testname.
       }
       // Test is constructed, add to current scenario.
-      s->set(std::move(test));
+      s->add(std::move(test));
     } else if (it->starts_with("o=") || it->starts_with("options=")) {
       if (!s->has_design()) {
         // throw: no design present in scenario.
@@ -206,7 +212,7 @@ void DriverRuntime::parse_test_arg_string(const std::string_view vs) {
       }
 
       // Otherwise, pass arguments to test
-      s->test()->config(v);
+      s->head()->config(v);
     } else {
       // throw: unknown argument.
     }
@@ -226,7 +232,6 @@ Arguments:
 
   -h/--help            : Print Options.
      --list_designs    : List available designs
-     --adcomp          : Admits compliment
   -s/--seed <integer>  : (Integer) Randomization seed
   -v/--verbose         : Verbosity
   )";

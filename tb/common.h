@@ -31,7 +31,7 @@
 #include <string_view>
 #include <tuple>
 #include <vector>
-#include <ostream>
+#include <sstream>
 #include "vsupport.h"
 
 // clang-format off
@@ -58,6 +58,19 @@ std::vector<std::string_view> split(
 
 std::tuple<bool, std::string_view, std::string_view> split_kv(
     const std::string_view& sv);
+
+template<typename FwdIt>
+std::string join(FwdIt begin, FwdIt end, std::string::value_type sep = ' ') {
+  std::ostringstream ss;
+  for (FwdIt cur{begin}; cur != end; ++cur) {
+    if (cur != begin) {
+      ss << sep;
+    }
+    ss << *cur;
+  }
+
+  return ss.str();
+}
 
 }  // namespace tb
 

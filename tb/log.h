@@ -40,7 +40,14 @@ template <typename T>
 class MessageFormatter;
 
 class Log {
+  friend class Scope;
  public:
+  struct Scope {
+    static constexpr std::size_t step_n = 2;
+    explicit Scope();
+    ~Scope();
+  };
+  
   enum class Level {
     Debug,
     Info,
@@ -54,7 +61,8 @@ class Log {
     std::ostringstream msg;
   };
 
-  explicit Log(std::ostream& os = std::cout) : os_(os), debug_(false) {}
+  explicit Log(std::ostream& os = std::cout)
+   : os_(os), debug_(false), scope_(0) {}
 
   void set_debug(bool en) { debug_ = en; }
 
@@ -64,6 +72,7 @@ class Log {
  private:
   std::ostream& os_;
   bool debug_;
+  std::size_t scope_;
 };
 
 template <typename T>
@@ -163,6 +172,8 @@ class MessageFormatter<bool> {
     ::tb::OPTIONS.log->message(r.msg());  \
   }                                       \
   U_MACRO_END
+  
+#define U_LOG_SCOPE(__id) ::tb::Log::Scope __log_scope##__id{}
 
 #define U_LOG_DEBUG(...) U_LOG_LEVEL(Log::Level::Debug, __VA_ARGS__)
 #define U_LOG_INFO(...) U_LOG_LEVEL(Log::Level::Info, __VA_ARGS__)

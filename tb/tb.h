@@ -40,8 +40,6 @@ inline struct Options {
   // Total encountered warnings.
   std::size_t warnings_n;
 
-  bool admits_compliment = false;
-
   std::size_t verbosity_n = 0;
 
   // Debug-mode (maximum verbosity and assertions enabled).

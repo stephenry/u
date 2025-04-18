@@ -39,6 +39,7 @@ set(U_VERILATOR_ARGS
     "-GW=${RTL_PARAM__W}"
     "-GP_ADMIT_COMPLIMENT_EN=${RTL_PARAM__ADMIT_COMPLIMENT_LOGIC}"
     "-I${CMAKE_SOURCE_DIR}/rtl"
+    "-unused-regexp UNUSED_*"
     "--top-module u")
 
 verilate(u "${U_RTL_SOURCES}" "${U_VERILATOR_ARGS}" v_u_lib)
@@ -50,6 +51,7 @@ set(E_VERILATOR_ARGS
     "-GW=${RTL_PARAM__W}"
     "-GP_ADMIT_COMPLIMENT_EN=${RTL_PARAM__ADMIT_COMPLIMENT_LOGIC}"
     "-I${CMAKE_SOURCE_DIR}/rtl"
+    "-unused-regexp UNUSED_*"
     "--top-module e")
 
 verilate(e "${E_RTL_SOURCES}" "${E_VERILATOR_ARGS}" v_e_lib)

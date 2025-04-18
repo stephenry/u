@@ -70,13 +70,13 @@ module u #(
 //                                                                           //
 // ========================================================================= //
 
-logic [W - 3:0]              match_lo_v;
-logic [W - 3:0]              match_hi_v;
-logic [W - 2:0]              match_v;
-logic [W - 3:0]              match_lo_n_v;
-logic [W - 3:0]              match_hi_n_v;
-logic [W - 2:0]              match_n_v;
-logic [W - 2:0]              is_unary_v;
+logic [W - 1:0]              match_lo_v;
+logic [W - 1:0]              match_hi_v;
+logic [W - 1:0]              match_v;
+logic [W - 1:0]              match_lo_n_v;
+logic [W - 1:0]              match_hi_n_v;
+logic [W - 1:0]              match_n_v;
+logic [W - 1:0]              is_unary_v;
 logic                        is_unary;
 logic                        is_compliment;
 
@@ -86,14 +86,14 @@ logic                        is_compliment;
 //                                                                           //
 // ========================================================================= //
 
-for (genvar i = 0; i < (W - 2); i++) begin : is_unary_i_GEN
+for (genvar i = 0; i < W; i++) begin : is_unary_i_GEN
 
 // Match: xxxxxx[1]11111, where [] is pivot 'i'
 u_mask #(.W(W), .I(i), .MATCH_BIT(1'b1), .LSB(1'b1))
    u_u_mask_lsb (.i_x(i_x), .o_match(match_lo_v[i]));
 
 // Match: 000000[x]xxxxx, where [] is pivot 'i'
-u_mask #(.W(W), .I(i + 1), .MATCH_BIT(1'b0), .LSB(1'b0))
+u_mask #(.W(W), .I(i), .MATCH_BIT(1'b0), .LSB(1'b0))
    u_u_mask_msb (.i_x(i_x), .o_match(match_hi_v[i]));
 
 if (P_ADMIT_COMPLIMENT_EN) begin : admit_compliment_GEN
@@ -103,7 +103,7 @@ if (P_ADMIT_COMPLIMENT_EN) begin : admit_compliment_GEN
      u_u_mask_lsb_n (.i_x(i_x), .o_match(match_lo_n_v[i]));
 
   // Match: 111111[x]xxxxxx, where [] is pivot 'i'.
-  u_mask #(.W(W), .I(i + 1), .MATCH_BIT(1'b1), .LSB(1'b0))
+  u_mask #(.W(W), .I(i), .MATCH_BIT(1'b1), .LSB(1'b0))
      u_u_mask_msb_n (.i_x(i_x), .o_match(match_hi_n_v[i]));
 
 end : admit_compliment_GEN
@@ -115,19 +115,23 @@ else begin : not_admit_compliment
 
 end : not_admit_compliment
 
-// Match on upper and lower segments of unary code.
-assign match_v[i]   = (match_lo_v[i] & match_hi_v[i]);
-// Similarly, match on compliment.
-assign match_n_v[i] = (match_lo_n_v[i] & match_hi_n_v[i]);
-
 end : is_unary_i_GEN
 
+for (genvar i = 0; i < (W - 1); i++) begin : match_i_GEN
+
+// Match on upper and lower segments of unary code.
+assign match_v[i]   = (match_lo_v[i] & match_hi_v[i + 1]);
+// Similarly, match on compliment.
+assign match_n_v[i] = (match_lo_n_v[i] & match_hi_n_v[i + 1]);
+
+end : match_i_GEN
+
 // Handle all-zero (0) boundary condition as a special-case.
-assign match_v[W - 2]   = (i_x == '0);
+assign match_v[W - 1]   = (i_x == '0);
 
 // When compliment is considered, handle all-one (1) boundary condition
 // as a special-case.
-assign match_n_v[W - 2] = P_ADMIT_COMPLIMENT_EN ? (i_x == '1) : 1'b0;
+assign match_n_v[W - 1] = P_ADMIT_COMPLIMENT_EN ? (i_x == '1) : 1'b0;
 
 // Match vector on unary code or its compliment. 
 assign is_unary_v = (match_v | match_n_v);
@@ -136,6 +140,7 @@ assign is_unary_v = (match_v | match_n_v);
 // pivot index in the input bit-vector. 
 assign is_unary = (is_unary_v != 0);
 
+// is_compliment whenever configured to detect such encodings and MSB is set.
 assign is_compliment = (P_ADMIT_COMPLIMENT_EN & i_x[W - 1]);
 
 // ========================================================================= //
@@ -146,5 +151,17 @@ assign is_compliment = (P_ADMIT_COMPLIMENT_EN & i_x[W - 1]);
 
 assign o_is_unary = is_unary;
 assign o_is_compliment = is_compliment;
+
+// ========================================================================= //
+//                                                                           //
+// UNUSED                                                                    //
+//                                                                           //
+// ========================================================================= //
+
+logic UNUSED__tie_off;
+assign UNUSED__tie_off = &{ match_lo_v[W - 1],
+                            match_hi_v[0],
+                            match_lo_n_v[W - 1],
+                            match_hi_n_v[0] };
 
 endmodule : u

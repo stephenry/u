@@ -67,8 +67,6 @@ class Design : public DesignBase {
   }
 
   std::tuple<bool, bool> is_unary(const StimulusVector& v) noexcept override {
-    U_LOG_DEBUG("Evaluating RTL...");
-
     // Drive input
     v.to_verilated(uut_->i_x);
     // Evaluate

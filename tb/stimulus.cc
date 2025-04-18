@@ -26,8 +26,8 @@
 //========================================================================== //
 
 #include "stimulus.h"
-
 #include "random.h"
+#include "cfg.h"
 
 namespace tb {
 
@@ -45,9 +45,15 @@ std::tuple<bool, bool> is_unary(const StimulusVector& b) {
     }
   }
 
+  // Detect true encoding.
   bool is_compliment = b.bit(b.size() - 1);
   bool is_unary = (is_compliment ? (ones == b.size()) : (zeros == b.size())) ||
                   (edges == 1);
+
+  // Kill detection when not configured for compliment.
+  if (!tb::cfg::ADMIT_COMPLIMENT && is_compliment) {
+    is_unary = false;
+  }
 
   return {is_unary, is_compliment};
 }

@@ -31,15 +31,18 @@
 #include "log.h"
 #include "random.h"
 #include "stimulus.h"
+#include "cfg.h"
 
 namespace tb {
 
 bool TestCase::check(DesignBase* b, const StimulusVector& v) {
+  U_LOG_SCOPE(0);
   U_LOG_INFO("Trial: ", v);
 
   auto [rtl_is_unary, rtl_is_compliment] = b->is_unary(v);
   auto [beh_is_unary, beh_is_compliment] = is_unary(v);
 
+  U_LOG_SCOPE(1);
   U_LOG_INFO("RTL: is_unary=", rtl_is_unary,
              ", rtl_is_compliment=", rtl_is_compliment);
   U_LOG_INFO("BEH: is_unary=", beh_is_unary,
@@ -51,7 +54,7 @@ bool TestCase::check(DesignBase* b, const StimulusVector& v) {
     return false;
   }
 
-  if (has_compliment_) {
+  if (tb::cfg::ADMIT_COMPLIMENT) {
     if (rtl_is_compliment != beh_is_compliment) {
       U_LOG_ERROR("Mismatch on compliment detection.");
       ++mismatches_;

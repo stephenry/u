@@ -10,9 +10,8 @@
             "request": "launch",
             "program": "${workspaceRoot}/build-w32/tb/tb",
             "args":[
-                "-t", "d=u",
-                "-t", "t=DirectedExhaustiveTestCase",
-                "-t", "t=FullyRandomizedTestCase"
+                "-d",
+                "-t", "d=u,t=DirectedExhaustiveTestCase,t=FullyRandomizedTestCase"
             ],
             "linux": {
                 "MIMode": "gdb"

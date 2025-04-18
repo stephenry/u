@@ -31,6 +31,14 @@
 
 namespace tb {
 
+Log::Scope::Scope() {
+  ::tb::OPTIONS.log->scope_ += step_n;
+}
+
+Log::Scope::~Scope() {
+  ::tb::OPTIONS.log->scope_ -= step_n;
+}
+
 std::string_view to_string(Log::Level l) {
   switch (l) {
     case Log::Level::Debug:
@@ -65,7 +73,9 @@ void Log::message(const Message& m) {
     default:
       break;
   }
-  os_ << to_string1(m.l) << ": " << m.msg.str() << std::endl;
+
+  const std::string scope_s(scope_, ' ');
+  os_ << to_string1(m.l) << ": " << scope_s << m.msg.str() << std::endl;
 }
 
 }  // namespace tb
