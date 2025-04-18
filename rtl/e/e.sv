@@ -87,12 +87,26 @@ assign edge_v[i] = (i == 0) ? 1'b0 : (i_x[i] ^ i_x[i - 1]);
 
 end : edge_GEN
 
-//
+// Edge vector should be one-hot if there is one transition across
+// the entire vector.
 e_is_1hot #(.W(W)) u_e_is_1hot (.i_x(edge_v), .o_is_1hot(has_one_edge));
 
+// Vector is unary iff:
+//
+//  1) Vector has one-edge AND: LSB is high, or if compliment detection
+//     is enabled, MSB is high.
+//
+//  2.1) And, encountered boundary case.
+//
+//  2.2) OR, if compliment detection is enabled, the compliment boundary
+//       case is present.
+//
 assign is_unary =
-  has_one_edge || (i_x == '0) || (P_ADMIT_COMPLIMENT_EN && (i_x == '1));
+  (has_one_edge & (i_x[0] | (P_ADMIT_COMPLIMENT_EN & i_x[W - 1]))) |  // (1)
+  (i_x == '0) |                                                       // (2.1)
+  (P_ADMIT_COMPLIMENT_EN & (i_x == '1));                              // (2.2)
 
+// is_compliment whenever configured to detect such encodings and MSB is set.
 assign is_compliment = (P_ADMIT_COMPLIMENT_EN & i_x[W - 1]);
 
 // ========================================================================= //
