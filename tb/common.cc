@@ -31,15 +31,10 @@ namespace tb {
 
 void to_hex(std::ostream& os, vluint8_t v, bool upper) {
   v &= 0xF;
-
-  if (v < 10) {
-    os << v;
+  if (upper) {
+    os << ((v < 10) ? v : ('A' + (v - 10)));
   } else {
-    if (upper) {
-      os << ('A' + (v - 10));
-    } else {
-      ps << ('a' + (v - 10));
-    }
+    os << ((v < 10) ? v : ('a' + (v - 10)));
   }
 }
 

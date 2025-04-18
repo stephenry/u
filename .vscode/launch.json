@@ -8,9 +8,11 @@
             "name": "debug-simple",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/tb/tb",
+            "program": "${command:cmake.launchTargetPath}",
             "args":[
-                "-t", "d=u,t=DirectedExhaustiveTestCase"
+                "-t", "d=u",
+                "-t", "t=DirectedExhaustiveTestCase",
+                "-t", "t=FullyRandomizedTestCase"
             ],
             "cwd": "${workspaceFolder}",
             "MIMode": "lldb"

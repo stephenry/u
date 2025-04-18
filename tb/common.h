@@ -33,7 +33,7 @@
 #include <vector>
 #include <ostream>
 
-#include "verilator.h"
+#include "verilated.h"
 
 // clang-format off
 #define U_MACRO_BEGIN   do {
@@ -52,7 +52,7 @@ constexpr T mask() {
   return (T{1} << W) - T{1};
 }
 
-void to_hex(std::ostream& os, vluint8_t v, bool upper = false)
+void to_hex(std::ostream& os, vluint8_t v, bool upper = false);
 
 std::vector<std::string_view> split(
   const std::string_view& s, std::string_view::value_type sep = ',');
