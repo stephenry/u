@@ -92,9 +92,11 @@ class MessageRenderer {
   }
 
   Log::Message& msg() noexcept { return msg_; }
-private:
+
+ private:
   template <typename T, typename... U>
-  void append_mf(const MessageFormatter<T>& f, const MessageFormatter<U>&... fs) {
+  void append_mf(const MessageFormatter<T>& f,
+                 const MessageFormatter<U>&... fs) {
     append_mf(f);
     append_mf(fs...);
   }
@@ -106,7 +108,7 @@ private:
   Log::Message msg_;
 };
 
-template<>
+template <>
 class MessageFormatter<const char*> {
  public:
   explicit MessageFormatter(MessageRenderer& r, const char* t) : r_(r), t_(t) {}
@@ -121,10 +123,11 @@ class MessageFormatter<const char*> {
   const char* t_;
 };
 
-template<>
+template <>
 class MessageFormatter<std::string> {
  public:
-  explicit MessageFormatter(MessageRenderer& r, const std::string& s) : r_(r), s_(s) {}
+  explicit MessageFormatter(MessageRenderer& r, const std::string& s)
+      : r_(r), s_(s) {}
 
   void render() const {
     std::ostringstream& os{r_.msg().msg};
@@ -136,7 +139,7 @@ class MessageFormatter<std::string> {
   const std::string& s_;
 };
 
-template<>
+template <>
 class MessageFormatter<bool> {
  public:
   explicit MessageFormatter(MessageRenderer& r, bool b) : r_(r), b_(b) {}

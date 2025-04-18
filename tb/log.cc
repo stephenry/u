@@ -29,8 +29,6 @@
 
 namespace tb {
 
-void Log::message(const Message& m) {
-    os_ << m.msg.str() << std::endl;
-}
+void Log::message(const Message& m) { os_ << m.msg.str() << std::endl; }
 
 }  // namespace tb

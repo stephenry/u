@@ -41,9 +41,7 @@ class DesignBase;
 
 class TestCase {
  public:
-  explicit TestCase(const std::string& name)
-    :  name_(name), mismatches_(0)
-  {}
+  explicit TestCase(const std::string& name) : name_(name), mismatches_(0) {}
   virtual ~TestCase() = default;
 
   virtual const std::string& name() const noexcept { return name_; }

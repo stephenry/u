@@ -63,9 +63,9 @@ class Scenario {
   std::unique_ptr<TestCase> t_;
 };
 
-void Scenario::run() { 
+void Scenario::run() {
   U_LOG_INFO("Scenario: design=\"", d_->name(), "\" test=\"", t_->name(), "\"");
-  t_->run(d_.get()); 
+  t_->run(d_.get());
 }
 
 class Program {

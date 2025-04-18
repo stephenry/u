@@ -28,9 +28,9 @@
 #include "tests.h"
 
 #include "designs.h"
+#include "log.h"
 #include "random.h"
 #include "stimulus.h"
-#include "log.h"
 
 namespace tb {
 
@@ -74,9 +74,7 @@ std::unique_ptr<TestCase> TestCaseRegistry::construct_test(
 
 class FullyRandomizedTestCase : public TestCase {
  public:
-  explicit FullyRandomizedTestCase()
-    : TestCase("FullyRandomizedTestCase")
-  {}
+  explicit FullyRandomizedTestCase() : TestCase("FullyRandomizedTestCase") {}
 
   // Parameters:
 
@@ -126,8 +124,7 @@ DECLARE_TESTCASE(FullyRandomizedTestCase);
 class DirectedExhaustiveTestCase : public TestCase {
  public:
   explicit DirectedExhaustiveTestCase(bool is_compliment = false)
-      : TestCase("DirectedExhaustiveTestCase")
-      , is_compliment_(is_compliment) {}
+      : TestCase("DirectedExhaustiveTestCase"), is_compliment_(is_compliment) {}
 
   bool run(DesignBase* b) override {
     // Check boundary all-one/-zero case.

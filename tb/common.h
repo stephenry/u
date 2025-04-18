@@ -32,8 +32,10 @@
 #include <tuple>
 #include <vector>
 
-#define U_MACRO_BEGIN  do {
-#define U_MACRO_END    } while (false)
+#define U_MACRO_BEGIN do {
+#define U_MACRO_END \
+  }                 \
+  while (false)
 
 namespace tb {
 

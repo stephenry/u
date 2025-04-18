@@ -30,8 +30,8 @@
 
 #include <algorithm>
 #include <array>
-#include <tuple>
 #include <ostream>
+#include <tuple>
 
 #include "cfg.h"
 #include "common.h"
@@ -134,21 +134,20 @@ class VBitVector {
   std::array<value_type, size_in_bytes_n> v_;
 };
 
-template<std::size_t W, typename T>
+template <std::size_t W, typename T>
 class MessageFormatter<VBitVector<W, T>> {
-public:
+ public:
   explicit MessageFormatter(MessageRenderer& r, const VBitVector<W, T>& t)
-    : r_(r), t_(t)
-  {}
+      : r_(r), t_(t) {}
 
   void render() const {
     std::ostream& os{r_.msg().msg};
     t_.render_to(os);
   }
 
-private:
+ private:
   MessageRenderer& r_;
-  const VBitVector<W,T>& t_;
+  const VBitVector<W, T>& t_;
 };
 
 class VBit : public VBitVector<1> {
