@@ -6,15 +6,15 @@ A collection of efficient circuits to determine if an arbitrary length inputs ve
 
 ## Detail
 
-- Edge-Based [e.sv](./rtl/e/e.sv):
+Edge-Based [e.sv](./rtl/e/e.sv):
 
 Admit an input vector if there is at most one edge transition across the span.
 
-- Mask-Based [u.sv](./rtl/u/u.sv):
+Mask-Based [u.sv](./rtl/u/u.sv):
 
 Admit an input vector if the format is a sequence of ones followed by a sequence of zeros. 
 
-- Incrementer-Based [p.sv](./rtl/p/p.sv):
+Incrementer-Based [p.sv](./rtl/p/p.sv):
 
 Admit an input vector if, once incremented, the resultant vector is one-hot encoded.
 
