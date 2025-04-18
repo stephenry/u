@@ -78,6 +78,13 @@ inline class TestCaseRegistry {
  public:
   explicit TestCaseRegistry() = default;
 
+  template<typename FwdIt>
+  void tests(FwdIt it) {
+    for (auto& [k,_] : b_) {
+      *it++ = k;
+    }
+  }
+
   std::unique_ptr<TestCase> construct_test(const std::string& name);
   std::unique_ptr<TestCase> construct_test(const std::string_view& name);
 

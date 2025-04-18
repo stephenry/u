@@ -30,6 +30,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <iterator>
 
 #include "designs.h"
 #include "random.h"
@@ -142,8 +143,17 @@ void DriverRuntime::build(std::vector<std::string_view>& args,
 
     // Parse arguments.
     if (arg == "--list_designs") {
-      for (const std::string& design : DESIGN_REGISTRY.designs()) {
+      std::vector<std::string> vs;
+      DESIGN_REGISTRY.designs(std::back_inserter(vs));
+      for (const std::string& design : vs) {
         std::cout << design << std::endl;
+      }
+      std::exit(0);
+    } else if (arg == "--list_tests") {
+      std::vector<std::string> vs;
+      TEST_REGISTRY.tests(std::back_inserter(vs));
+      for (const std::string& test : vs) {
+        std::cout << test << std::endl;
       }
       std::exit(0);
     } else if (arg == "-s" || arg == "--seed") {

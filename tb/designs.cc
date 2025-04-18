@@ -29,15 +29,6 @@
 
 namespace tb {
 
-std::vector<std::string> DesignRegistry::designs() const {
-  std::vector<std::string> vs;
-  vs.reserve(designs_.size());
-  for (auto& [k, v] : designs_) {
-    vs.push_back(k);
-  }
-  return vs;
-}
-
 std::unique_ptr<DesignBase> DesignRegistry::construct_design(
     const std::string& name) {
   if (auto it = designs_.find(name); it != designs_.end()) {

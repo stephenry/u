@@ -67,7 +67,12 @@ inline class DesignRegistry {
 
   explicit DesignRegistry() = default;
 
-  std::vector<std::string> designs() const;
+  template<typename FwdIt>
+  void designs(FwdIt it) const {
+    for (auto& [k, _] : designs_) {
+      *it++ = k;
+    }
+  }
 
   void add(const std::string& name, std::unique_ptr<DesignBuilderBase>&& d) {
     if (designs_.find(name) == designs_.end()) {

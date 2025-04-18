@@ -97,23 +97,12 @@ class MessageRenderer {
 
   template <typename... T>
   void append(T&&... args) {
-    append_mf(MessageFormatter<std::decay_t<T>>{*this, args}...);
+    (MessageFormatter<std::decay_t<T>>{*this, args}.render(), ...);
   }
 
   Log::Message& msg() noexcept { return msg_; }
 
  private:
-  template <typename T, typename... U>
-  void append_mf(const MessageFormatter<T>& f,
-                 const MessageFormatter<U>&... fs) {
-    append_mf(f);
-    append_mf(fs...);
-  }
-
-  template <typename T>
-  void append_mf(const MessageFormatter<T>& f) {
-    f.render();
-  }
   Log::Message msg_;
 };
 

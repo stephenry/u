@@ -1,6 +1,8 @@
 {
     "cmake.useCMakePresets": "always",
     "files.associations": {
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "memory": "cpp",
+        "ostream": "cpp"
     }
 }
