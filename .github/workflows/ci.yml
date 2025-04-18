@@ -9,8 +9,10 @@ jobs:
       password: ${{ secrets.github_token }}
     steps:
       name: test
-      steps: |
-        cmake . --preset w32
-        cmake --build build_w32 -t tb
-        ctest --test-dir build_w32
+      steps:
+        name: test_w32
+        run: |
+          cmake . --preset w32
+          cmake --build build_w32 -t tb
+          ctest --test-dir build_w32
 
