@@ -2,7 +2,7 @@
     "version": 9,
     "configurePresets": [
         {
-            "name": "w8",
+            "name": "w32",
             "generator": "Ninja",
             "binaryDir": "build-${presetName}",
             "cacheVariables": {
@@ -11,11 +11,48 @@
             }
         },
         {
-            "name": "w8c",
+            "name": "w32c",
             "generator": "Ninja",
             "binaryDir": "build-${presetName}",
             "cacheVariables": {
                 "RTL_PARAM__W": "32",
+                "RTL_PARAM__ADMIT_COMPLIMENT": true
+            }
+        },
+        {
+            "name": "w4",
+            "generator": "Ninja",
+            "binaryDir": "build-${presetName}",
+            "cacheVariables": {
+                "RTL_PARAM__W": "4",
+                "RTL_PARAM__ADMIT_COMPLIMENT": false
+            }
+        },
+        {
+            "name": "w4c",
+            "generator": "Ninja",
+            "binaryDir": "build-${presetName}",
+            "cacheVariables": {
+                "RTL_PARAM__W": "4",
+                "RTL_PARAM__ADMIT_COMPLIMENT": true
+            }
+        }
+        ,
+        {
+            "name": "w1024",
+            "generator": "Ninja",
+            "binaryDir": "build-${presetName}",
+            "cacheVariables": {
+                "RTL_PARAM__W": "1024",
+                "RTL_PARAM__ADMIT_COMPLIMENT": false
+            }
+        },
+        {
+            "name": "w1024c",
+            "generator": "Ninja",
+            "binaryDir": "build-${presetName}",
+            "cacheVariables": {
+                "RTL_PARAM__W": "1024",
                 "RTL_PARAM__ADMIT_COMPLIMENT": true
             }
         }

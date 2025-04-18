@@ -34,7 +34,6 @@
 namespace tb {
 
 inline struct Options {
-
   // Total encountered errors.
   std::size_t errors_n;
 

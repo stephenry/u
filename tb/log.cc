@@ -26,39 +26,46 @@
 //========================================================================== //
 
 #include "log.h"
+
 #include "tb.h"
 
 namespace tb {
 
 std::string_view to_string(Log::Level l) {
-    switch (l) {
-    case Log::Level::Debug: return "Debug";
-    case Log::Level::Info: return "Info";
-    case Log::Level::Warning: return "Warning";
-    case Log::Level::Error: return "Error";
-    case Log::Level::Fatal: return "Fatal";
-    default: return "Invalid";
-    }
+  switch (l) {
+    case Log::Level::Debug:
+      return "Debug";
+    case Log::Level::Info:
+      return "Info";
+    case Log::Level::Warning:
+      return "Warning";
+    case Log::Level::Error:
+      return "Error";
+    case Log::Level::Fatal:
+      return "Fatal";
+    default:
+      return "Invalid";
+  }
 }
 
 std::string_view to_string1(Log::Level l) {
-    return std::string_view{to_string(l).substr(0,1)};
+  return std::string_view{to_string(l).substr(0, 1)};
 }
 
 void Log::message(const Message& m) {
-    switch (m.l) {
+  switch (m.l) {
     case Log::Level::Warning:
-        ++OPTIONS.warnings_n;
-        break;
+      ++OPTIONS.warnings_n;
+      break;
     case Log::Level::Error:
-        ++OPTIONS.errors_n;
-        break;
+      ++OPTIONS.errors_n;
+      break;
     case Log::Level::Fatal:
-        break;
+      break;
     default:
-        break;
-    }
-    os_ << to_string1(m.l) << ": " << m.msg.str() << std::endl;
+      break;
+  }
+  os_ << to_string1(m.l) << ": " << m.msg.str() << std::endl;
 }
 
 }  // namespace tb

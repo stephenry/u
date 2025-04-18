@@ -52,8 +52,8 @@ std::unique_ptr<DesignBase> DesignRegistry::construct_design(
 }
 
 template <typename T>
-concept VUnaryModule = requires(T t) { 
-  { t.eval() } -> std::same_as<void>; 
+concept VUnaryModule = requires(T t) {
+  { t.eval() } -> std::same_as<void>;
   t.i_x;
   t.o_is_unary;
   t.o_is_compliment;
@@ -74,9 +74,8 @@ class Design : public DesignBase {
     // Evaluate
     uut_->eval();
     // Return response.
-    return {
-      VBit::from_verilated(uut_->o_is_unary).to_bool(),
-      VBit::from_verilated(uut_->o_is_compliment).to_bool()};
+    return {VBit::from_verilated(uut_->o_is_unary).to_bool(),
+            VBit::from_verilated(uut_->o_is_compliment).to_bool()};
   }
 
  private:

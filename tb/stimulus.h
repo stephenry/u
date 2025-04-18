@@ -117,7 +117,10 @@ class VBitVector {
 
   // clang-format off
 #define VERILATOR_PORT_TYPES(__func) \
-  __func(vluint32_t)
+  __func(vluint8_t) \
+  __func(vluint16_t) \
+  __func(vluint32_t) \
+  __func(vluint64_t)
 
 #define DECLARE_VERILATOR_PORT_CONVERTER(__type)                        \
   void to_verilated(__type& t) const noexcept {                         \

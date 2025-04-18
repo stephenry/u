@@ -31,11 +31,14 @@
 #include <string_view>
 #include <tuple>
 #include <vector>
+#include <ostream>
 
-#define U_MACRO_BEGIN do {
-#define U_MACRO_END \
-  }                 \
-  while (false)
+#include "verilator.h"
+
+// clang-format off
+#define U_MACRO_BEGIN   do {
+#define U_MACRO_END     } while (false)
+// clang-format on
 
 namespace tb {
 
@@ -49,8 +52,10 @@ constexpr T mask() {
   return (T{1} << W) - T{1};
 }
 
-std::vector<std::string_view> split(const std::string_view& s,
-                                    std::string_view::value_type sep = ',');
+void to_hex(std::ostream& os, vluint8_t v, bool upper = false)
+
+std::vector<std::string_view> split(
+  const std::string_view& s, std::string_view::value_type sep = ',');
 
 std::tuple<bool, std::string_view, std::string_view> split_kv(
     const std::string_view& sv);

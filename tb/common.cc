@@ -29,8 +29,22 @@
 
 namespace tb {
 
-std::vector<std::string_view> split(const std::string_view& s,
-                                    std::string_view::value_type sep) {
+void to_hex(std::ostream& os, vluint8_t v, bool upper) {
+  v &= 0xF;
+
+  if (v < 10) {
+    os << v;
+  } else {
+    if (upper) {
+      os << ('A' + (v - 10));
+    } else {
+      ps << ('a' + (v - 10));
+    }
+  }
+}
+
+std::vector<std::string_view> split(
+    const std::string_view& s, std::string_view::value_type sep) {
   using size_type = std::string_view::size_type;
 
   std::vector<std::string_view> vs;
