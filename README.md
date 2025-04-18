@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-A collection of efficient circuits to determine if an arbitrary length inputs vector is a valid unary encoding.
+A collection of efficient circuits to determine if an arbitrary lengthed input vector is a valid unary encoding.
 
 ## Detail
 
