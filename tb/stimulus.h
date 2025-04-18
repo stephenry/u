@@ -103,7 +103,7 @@ class VBitVector {
 
   void value(std::size_t i, value_type v) { v_[i] = v; }
 
-// clang-format off
+  // clang-format off
 #define VERILATOR_PORT_TYPES(__func) \
   __func(vluint32_t)
 

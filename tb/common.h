@@ -28,6 +28,10 @@
 #ifndef TB_COMMON_H
 #define TB_COMMON_H
 
+#include <string_view>
+#include <tuple>
+#include <vector>
+
 namespace tb {
 
 constexpr std::size_t ceil(std::size_t n, std::size_t d) {
@@ -37,8 +41,14 @@ constexpr std::size_t ceil(std::size_t n, std::size_t d) {
 template <typename T, std::size_t W>
 constexpr T mask() {
   static_assert(W < (8 * sizeof(T)));
-  return (T{1} << W) - 1;
+  return (T{1} << W) - T{1};
 }
+
+std::vector<std::string_view> split(const std::string_view& s,
+                                    std::string_view::value_type sep = ',');
+
+std::tuple<bool, std::string_view, std::string_view> split_kv(
+    const std::string_view& sv);
 
 }  // namespace tb
 

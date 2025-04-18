@@ -47,6 +47,8 @@ class TestCase {
   virtual bool pass() const noexcept { return (mismatches_ != 0); };
   virtual bool fail() const noexcept { return !pass(); }
 
+  virtual void config(const std::string_view& sv) { }
+
   virtual bool run(DesignBase* b) = 0;
 
  protected:
@@ -74,7 +76,8 @@ inline class TestCaseRegistry {
  public:
   explicit TestCaseRegistry() = default;
 
-  std::unique_ptr<TestCase> construct(const std::string& name);
+  std::unique_ptr<TestCase> construct_test(const std::string& name);
+  std::unique_ptr<TestCase> construct_test(const std::string_view& name);
 
   template <typename T>
   void add_testcase(const std::string& name) {
@@ -85,7 +88,7 @@ inline class TestCaseRegistry {
 
  private:
   std::unordered_map<std::string, std::unique_ptr<TestCaseBuilderBase> > b_;
-} TC_REGISTRY;
+} TEST_REGISTRY;
 
 }  // namespace tb
 

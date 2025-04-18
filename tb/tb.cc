@@ -25,47 +25,113 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
+#include "tb.h"
+
 #include <iostream>
 #include <memory>
 #include <vector>
-#include <iostream>
 
 #include "designs.h"
 #include "random.h"
-#include "tb.h"
+#include "tests.h"
 
 namespace tb {
 
-class DesignRunner {
+class Scenario {
  public:
-  explicit DesignRunner() = default;
-  virtual ~DesignRunner() = default;
+  explicit Scenario() = default;
 
-  virtual void run(DesignBase* d) = 0;
-};
-
-class Test {
- public:
-  void run() {
-    // opts_.program->run(d.get());
+  bool has_design() const noexcept {
+    return (d_ != nullptr);
   }
 
+  bool has_test() const noexcept {
+    return (t_ != nullptr);
+  }
+
+  bool is_valid() const noexcept {
+    return (has_design() && has_test());
+  }
+
+  void set(std::unique_ptr<DesignBase>&& d) {
+    d_ = std::move(d);
+  }
+
+  void set(std::unique_ptr<TestCase>&& t) {
+    t_ = std::move(t);
+  }
+
+  TestCase* test() noexcept { return t_.get(); }
+
+  void run();
+
+ private:
+  // Unit under test.
+  std::unique_ptr<DesignBase> d_;
+
+  // Tests to run on design.
+  std::unique_ptr<TestCase> t_;
 };
 
-struct OptionsInitializer {
-  explicit OptionsInitializer(int argc, const char** argv, std::ostream& os = std::cerr);
+void Scenario::run() {
+  t_->run(d_.get());
+}
+
+class Program {
+ public:
+  explicit Program() = default;
+
+  void add(std::unique_ptr<Scenario>&& s) {
+    s_.push_back(std::move(s));
+  }
+
+  void run();
+
+ private:
+  void run_scenario(Scenario* s);
+
+  std::vector<std::unique_ptr<Scenario> > s_;
+};
+
+void Program::run() {
+  for (std::unique_ptr<Scenario>& s : s_) {
+    run_scenario(s.get());
+  }
+}
+
+void Program::run_scenario(Scenario* s) {
+  // Run-test on current design.
+  s->run();
+}
+
+struct DriverRuntime {
+  explicit DriverRuntime(int argc, const char** argv,
+                         std::ostream& os = std::cerr);
+
+  int run() const;
+  int status() const { return 0; }
 
  private:
   void build(std::vector<std::string_view>& args, std::ostream& os);
   void help() const;
+  void parse_test_arg_string(const std::string_view vs);
+
+  std::unique_ptr<Program> p_;
 };
 
-OptionsInitializer::OptionsInitializer(int argc, const char** argv, std::ostream& os) {
+DriverRuntime::DriverRuntime(int argc, const char** argv, std::ostream& os) {
+  p_ = std::make_unique<Program>();
   std::vector<std::string_view> vs{argv, argv + argc};
   build(vs, os);
 }
 
-void OptionsInitializer::build(std::vector<std::string_view>& args, std::ostream& os) {
+int DriverRuntime::run() const { 
+  p_->run();
+  return status(); 
+}
+
+void DriverRuntime::build(std::vector<std::string_view>& args,
+                          std::ostream& os) {
   for (auto it = args.begin(); it != args.end(); ++it) {
     std::string_view arg{*it};
 
@@ -83,11 +149,14 @@ void OptionsInitializer::build(std::vector<std::string_view>& args, std::ostream
         std::cout << design << std::endl;
       }
       std::exit(1);
-    } else if (arg == "-s" || arg== "--seed") {
+    } else if (arg == "-s" || arg == "--seed") {
       check_next_argument(it);
       RANDOM.seed(std::stoull(std::string{*++it}));
     } else if (arg == "-v" || arg == "--verbose") {
       OPTIONS.verbose = true;
+    } else if (arg == "-t" || arg == "--test") {
+      check_next_argument(it);
+      parse_test_arg_string(*++it);
     } else if (arg == "--adcomp") {
       OPTIONS.admits_compliment = true;
     } else if (arg == "-h" || arg == "--help") {
@@ -99,7 +168,63 @@ void OptionsInitializer::build(std::vector<std::string_view>& args, std::ostream
   }
 }
 
-void OptionsInitializer::help() const {
+void DriverRuntime::parse_test_arg_string(const std::string_view vs) {
+  std::unique_ptr<Scenario> s = std::make_unique<Scenario>();
+  const std::vector<std::string_view>& vss{split(vs, ',')};
+  for (auto it = vss.begin(); it != vss.end(); ++it) {
+    if (it->starts_with("d=") || it->starts_with("design=")) {
+      // Construct new design
+      auto [ok, k, v] = split_kv(*it);
+      if (!ok) {
+        // throw: malformed argument list.
+      }
+      auto design = DESIGN_REGISTRY.construct_design(*it);
+      if (!design) {
+        // throw: unknown design name.
+      }
+      // Design is constructed, add to current scenario.
+      s->set(std::move(design));
+    } else if (it->starts_with("t="), it->starts_with("tests")) {
+      // Construct new test for design.
+      if (!s->has_design()) {
+        // Throw: no design defined. Cannot attach test.
+      }
+      auto [ok, k, v] = split_kv(*it);
+      if (!ok) {
+        // throw: malformed argument list.
+      }
+      auto test = TEST_REGISTRY.construct_test(*it);
+      if (!test) {
+        // throw: unknown testname.
+      }
+      // Test is constructed, add to current scenario.
+      s->set(std::move(test));
+    } else if (it->starts_with("o=") || it->starts_with("options=")) {
+      if (!s->has_design()) {
+        // throw: no design present in scenario.
+      }
+      if (!s->has_test()) {
+        // throw: no test present in scenario.
+      }
+      auto [ok, k, v] = split_kv(*it);
+      if (!ok) {
+        // throw: malformed argument list.
+      }
+
+      // Otherwise, pass arguments to test
+      s->test()->config(v);
+    } else {
+      // throw: unknown argument.
+    }
+  }
+  if (!s->is_valid()) {
+    // throw: malformed scenario.
+  }
+  // Otherwise, add this to the list of scenarios to run.
+  p_->add(std::move(s));
+}
+
+void DriverRuntime::help() const {
   std::cout << R"(
 Usage: Unary-/Thermometer admission circuit testbench driver.
 
@@ -117,6 +242,6 @@ Arguments:
 }  // namespace tb
 
 int main(int argc, const char** argv) {
-  tb::OptionsInitializer ob{argc, argv};
-  return 0;
+  tb::DriverRuntime rt{argc, argv};
+  return rt.run();
 }

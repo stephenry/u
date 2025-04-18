@@ -46,7 +46,7 @@ bool TestCase::check(DesignBase* b, const StimulusVector& v) {
   return true;
 }
 
-std::unique_ptr<TestCase> TestCaseRegistry::construct(const std::string& name) {
+std::unique_ptr<TestCase> TestCaseRegistry::construct_test(const std::string& name) {
   auto it = b_.find(name);
   if (it == b_.end()) {
     return nullptr;
@@ -54,11 +54,15 @@ std::unique_ptr<TestCase> TestCaseRegistry::construct(const std::string& name) {
   return it->second->construct();
 }
 
+std::unique_ptr<TestCase> TestCaseRegistry::construct_test(const std::string_view& name) {
+  return construct_test(std::string{name});
+}
+
 // clang-format off
 #define DECLARE_TESTCASE(__name)                    \
   static const struct TestCaseRegisterer_##__name { \
     explicit TestCaseRegisterer_##__name() {        \
-      TC_REGISTRY.add_testcase<__name>(#__name);    \
+      TEST_REGISTRY.add_testcase<__name>(#__name);    \
     }                                               \
   } __tc_register_##__name {}
 // clang-format on

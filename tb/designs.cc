@@ -46,13 +46,59 @@ std::unique_ptr<DesignBase> DesignRegistry::construct_design(
   return nullptr;
 }
 
-}  // namespace tb
+std::unique_ptr<DesignBase> DesignRegistry::construct_design(
+  const std::string_view& name) {
+  return construct_design(std::string{name});
+}
+
+template<typename T>
+concept VUnaryModule = requires(T t) {
+  t.eval();
+};
+
+template <VUnaryModule T>
+class Design : public DesignBase {
+ public:
+  explicit Design(const std::string& name)
+    : DesignBase(name) {
+     uut_ = std::make_unique<T>();
+  }
+
+  bool is_unary(const StimulusVector& v) noexcept override {
+    // Drive input
+    v.to_verilated(uut_->i_x);
+    // Evaluate
+    uut_->eval();
+    // Return response.
+    return VBit::from_verilated(uut_->o_is_unary).to_bool();
+  }
+
+ private:
+  std::unique_ptr<T> uut_;
+};
+
+template <typename T>
+class DesignBuilder : public tb::DesignRegistry::DesignBuilderBase {
+  public:
+  explicit DesignBuilder(const std::string& name)
+    : name_(name)
+    {}
+  std::unique_ptr<DesignBase> construct() const override {
+    return std::unique_ptr<DesignBase>(new Design<T>(name_));
+  }
+private:
+  std::string name_;
+};
+
+} // namespace tb
 
 // clang-format off
 #define DECLARE_DESIGN(__name)                            \
   static const struct DesignRegister##__name {            \
     explicit DesignRegister##__name() {                   \
-      tb::DESIGN_REGISTRY.add_design<V##__name>(#__name); \
+      auto b = std::unique_ptr<tb::DesignRegistry::DesignBuilderBase>(\
+        new tb::DesignBuilder<V##__name>(#__name)); \
+      tb::DESIGN_REGISTRY.add(#__name, std::move(b)); \
     }                                                     \
   } __register_##__name {}
 // clang-format on

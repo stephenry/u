@@ -25,65 +25,43 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
-#ifndef TB_DESIGNS_H
-#define TB_DESIGNS_H
-
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <vector>
-
-#include "stimulus.h"
+#include "common.h"
 
 namespace tb {
 
-class DesignBase {
- public:
-  explicit DesignBase(const std::string& name)
-    : name_(name)
-  {}
-  
-  virtual ~DesignBase() = default;
+std::vector<std::string_view> split(const std::string_view& s,
+                                    std::string_view::value_type sep) {
+  using size_type = std::string_view::size_type;
 
-  // Design name
-  virtual const std::string& name() const noexcept { return name_; }
+  std::vector<std::string_view> vs;
 
-  // Evaluate verilated module with stimulus 'v' and return admission
-  // decision.
-  virtual bool is_unary(const StimulusVector& v) noexcept = 0;
-
-private:
-  // Design name.
-  std::string name_;
-};
-
-inline class DesignRegistry {
-  public:
-  class DesignBuilderBase {
-   public:
-    explicit DesignBuilderBase() = default;
-    virtual ~DesignBuilderBase() = default;
-
-    virtual std::unique_ptr<DesignBase> construct() const = 0;
+  auto try_add_string_piece = [&](size_type begin, size_type end) {
+    if (begin == end) {
+      return;
+    }
+    vs.push_back(s.substr(begin, end - begin + 1));
   };
 
-  explicit DesignRegistry() = default;
+  size_type begin = 0, end = s.find(sep);
+  while (end != std::string_view::npos) {
+    try_add_string_piece(begin, end);
 
-  std::vector<std::string> designs() const;
+    end = s.find(sep, begin);
+  }
+  try_add_string_piece(begin, end);
 
-  void add(const std::string& name, std::unique_ptr<DesignBuilderBase>&& d) {
-    if (designs_.find(name) == designs_.end()) {
-      designs_[name] = std::move(d);
-    }  
+  return vs;
+}
+
+std::tuple<bool, std::string_view, std::string_view> split_kv(
+    const std::string_view& sv) {
+  const std::vector<std::string_view> vs{split(sv, '=')};
+
+  if (vs.size() != 2) {
+    return {false, "", ""};
   }
 
-  std::unique_ptr<DesignBase> construct_design(const std::string& name);
-  std::unique_ptr<DesignBase> construct_design(const std::string_view& name);
-
- private:
-  std::unordered_map<std::string, std::unique_ptr<DesignBuilderBase>> designs_;
-} DESIGN_REGISTRY;
+  return {true, vs[0], vs[1]};
+}
 
 }  // namespace tb
-
-#endif

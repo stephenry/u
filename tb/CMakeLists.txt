@@ -64,6 +64,7 @@ set(P_VERILATOR_ARGS
 verilate(p "${P_RTL_SOURCES}" "${P_VERILATOR_ARGS}" v_p_lib)
 
 set(TB_SOURCES
+    "${CMAKE_SOURCE_DIR}/tb/common.cc"
     "${CMAKE_SOURCE_DIR}/tb/common.h"
     "${CMAKE_SOURCE_DIR}/tb/random.h"
     "${CMAKE_SOURCE_DIR}/tb/designs.h"
@@ -91,7 +92,7 @@ endif ()
 configure_file(cfg.h.in cfg.h)
 
 find_program(CLANG_FORMAT
-    clang-format-14
+    clang-format
     PATHS /usr/bin)
 
 if (CLANG_FORMAT)

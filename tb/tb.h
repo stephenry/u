@@ -31,13 +31,12 @@
 namespace tb {
 
 inline struct Options {
-
   bool admits_compliment = false;
 
   bool verbose = false;
 
 } OPTIONS;
 
-} // namespace tb
+}  // namespace tb
 
 #endif
