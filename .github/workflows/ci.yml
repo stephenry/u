@@ -8,9 +8,9 @@ jobs:
       username: ${{ github.actor }}
       password: ${{ secrets.github_token }}
     steps:
-      name: configure
-      steps: cmake . --preset w32
-      name: build
-      steps: cmake --build build_w32 -t tb
       name: test
-      steps: ctest --test-dir build_w32
+      steps: |
+        cmake . --preset w32
+        cmake --build build_w32 -t tb
+        ctest --test-dir build_w32
+
