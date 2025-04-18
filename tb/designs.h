@@ -48,7 +48,7 @@ class DesignBase {
 
   // Evaluate verilated module with stimulus 'v' and return admission
   // decision.
-  virtual bool is_unary(const StimulusVector& v) noexcept = 0;
+  virtual std::tuple<bool, bool> is_unary(const StimulusVector& v) noexcept = 0;
 
  private:
   // Design name.

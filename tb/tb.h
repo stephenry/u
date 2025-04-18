@@ -34,6 +34,13 @@
 namespace tb {
 
 inline struct Options {
+
+  // Total encountered errors.
+  std::size_t errors_n;
+
+  // Total encountered warnings.
+  std::size_t warnings_n;
+
   bool admits_compliment = false;
 
   std::size_t verbosity_n = 0;

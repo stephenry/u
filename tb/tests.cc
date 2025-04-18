@@ -35,17 +35,33 @@
 namespace tb {
 
 bool TestCase::check(DesignBase* b, const StimulusVector& v) {
-  bool rtl_is_unary = b->is_unary(v);
-  U_LOG_INFO("RTL: ", v, " is_unary=", rtl_is_unary);
-
+  U_LOG_INFO("Trial: ", v);
+ 
+  auto [rtl_is_unary, rtl_is_compliment] = b->is_unary(v);
   auto [beh_is_unary, beh_is_compliment] = is_unary(v);
 
-  if (rtl_is_unary == beh_is_unary) {
+  U_LOG_INFO("RTL: is_unary=", rtl_is_unary, ", rtl_is_compliment=", rtl_is_compliment);
+  U_LOG_INFO("BEH: is_unary=", beh_is_unary, ", beh_is_compliment=", beh_is_compliment);
+
+  if (rtl_is_unary != beh_is_unary) {
+    U_LOG_ERROR("Mismatch on unary-encoding admission.");
     ++mismatches_;
     return false;
   }
 
-  // TODO: Check compliment.
+  if (has_compliment_) {
+    if (rtl_is_compliment != beh_is_compliment) {
+      U_LOG_ERROR("Mismatch on compliment detection.");
+      ++mismatches_;
+      return false;
+    }
+  } else if (rtl_is_compliment) {
+    U_LOG_ERROR("RTL asserts compliment, but not has been configured with feature");
+    ++mismatches_;
+    return false;
+  }
+
+  // Pass
   return true;
 }
 
@@ -139,9 +155,8 @@ class DirectedExhaustiveTestCase : public TestCase {
 
  private:
   bool zero_case(DesignBase* b) {
-    const StimulusVector zero_case = is_compliment_
-                                         ? StimulusVector::all_ones()
-                                         : StimulusVector::all_zeros();
+    const StimulusVector zero_case = 
+      is_compliment_ ? StimulusVector::all_ones() : StimulusVector::all_zeros();
     return check(b, zero_case);
   }
 

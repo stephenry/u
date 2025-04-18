@@ -40,6 +40,8 @@ module p #(
 
 // Admission Decision
 , output wire logic                              o_is_unary
+// Compliment form unary.
+, output wire logic                              o_is_compliment
 );
 
 // Circuit to admit an arbitrary lengthed unary-/thermometer-coded bit-vector.
@@ -73,6 +75,7 @@ logic [W - 1:0]                        y_inc;
 logic                                  UNUSED__y_inc_cout;
 logic                                  is_1hot;
 logic                                  is_unary;
+logic                                  is_compliment;
 
 // ========================================================================= //
 //                                                                           //
@@ -112,6 +115,8 @@ p_is_1hot #(.W(W)) u_p_is_1hot (.i_x(y_inc), .o_is_1hot(is_1hot));
 //
 assign is_unary = is_1hot & (P_ADMIT_COMPLIMENT_EN | ~i_x[W - 1]);
 
+assign is_compliment = (P_ADMIT_COMPLIMENT_EN & i_x[W - 1]);
+
 // ========================================================================= //
 //                                                                           //
 // Output(s)                                                                 //
@@ -119,5 +124,6 @@ assign is_unary = is_1hot & (P_ADMIT_COMPLIMENT_EN | ~i_x[W - 1]);
 // ========================================================================= //
 
 assign o_is_unary = is_unary;
+assign o_is_compliment = is_compliment;
 
 endmodule : p

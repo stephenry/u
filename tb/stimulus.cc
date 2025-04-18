@@ -33,14 +33,14 @@ namespace tb {
 
 std::tuple<bool, bool> is_unary(const StimulusVector& b) {
   std::size_t edges = 0, zeros = 0, ones = 0;
-  for (std::size_t i = 1; i < b.size(); ++i) {
+  for (std::size_t i = 0; i < b.size(); ++i) {
     if (b.bit(i)) {
       ++ones;
     } else {
       ++zeros;
     }
 
-    if (b.bit(i) ^ b.bit(i - 1)) {
+    if ((i > 0) && (b.bit(i) ^ b.bit(i - 1))) {
       ++edges;
     }
   }

@@ -155,13 +155,13 @@ class MessageFormatter<bool> {
 };
 
 // clang-format off
-#define U_LOG_LEVEL(__level, ...) \
-  U_MACRO_BEGIN \
-  if (::tb::OPTIONS.log) { \
-  ::tb::MessageRenderer r{__level}; \
-  r.append(__VA_ARGS__); \
-  ::tb::OPTIONS.log->message(r.msg()); \
-  } \
+#define U_LOG_LEVEL(__level, ...)         \
+  U_MACRO_BEGIN                           \
+  if (::tb::OPTIONS.log) {                \
+    ::tb::MessageRenderer r{__level};     \
+    r.append(__VA_ARGS__);                \
+    ::tb::OPTIONS.log->message(r.msg());  \
+  }                                       \
   U_MACRO_END
 
 #define U_LOG_DEBUG(...) U_LOG_LEVEL(Log::Level::Debug, __VA_ARGS__)

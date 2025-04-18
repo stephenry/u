@@ -58,6 +58,7 @@ class TestCase {
  private:
   std::string name_;
   std::size_t mismatches_;
+  bool has_compliment_{false};
 };
 
 inline class TestCaseRegistry {

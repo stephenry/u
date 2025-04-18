@@ -61,7 +61,7 @@ class Design : public DesignBase {
     uut_ = std::make_unique<T>();
   }
 
-  bool is_unary(const StimulusVector& v) noexcept override {
+  std::tuple<bool, bool> is_unary(const StimulusVector& v) noexcept override {
     U_LOG_DEBUG("Evaluating RTL...");
 
     // Drive input
@@ -69,7 +69,9 @@ class Design : public DesignBase {
     // Evaluate
     uut_->eval();
     // Return response.
-    return VBit::from_verilated(uut_->o_is_unary).to_bool();
+    return {
+      VBit::from_verilated(uut_->o_is_unary).to_bool(),
+      VBit::from_verilated(uut_->o_is_compliment).to_bool()};
   }
 
  private:
