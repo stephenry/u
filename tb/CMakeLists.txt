@@ -121,7 +121,8 @@ endif()
 
 add_test(NAME test
   COMMAND $<TARGET_FILE:tb>
-    -t d=u,t=FullyRandomizedTestCase,t=DirectExhaustiveTestCase
-    -t d=e,t=FullyRandomizedTestCase,t=DirectExhaustiveTestCase
-    -t d=p,t=FullyRandomizedTestCase,t=DirectExhaustiveTestCase
+    -d
+    -t d=u,t=FullyRandomizedTestCase,t=DirectedExhaustiveTestCase
+    -t d=e,t=FullyRandomizedTestCase,t=DirectedExhaustiveTestCase
+    -t d=p,t=FullyRandomizedTestCase,t=DirectedExhaustiveTestCase
   )
