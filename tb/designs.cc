@@ -105,4 +105,7 @@ DECLARE_DESIGN(e);
 #include "VObj_p/Vp.h"
 DECLARE_DESIGN(p);
 
+#include "VObj_c/Vc.h"
+DECLARE_DESIGN(c);
+
 #undef DECLARE_DESIGN
