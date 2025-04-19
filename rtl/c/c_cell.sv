@@ -34,9 +34,11 @@ module c_cell #(
 )(
 // Input bit
   input wire logic                               i_x
+, input wire logic                               i_x_prev
 
 // ------------------------------------------------------------------------- //
 // Prior State
+, input wire logic                               i_is_first
 , input wire logic                               i_prior_all_ones
 , input wire logic                               i_prior_all_zeros_n
 , input wire logic                               i_prior_is_unary
@@ -61,11 +63,14 @@ module c_cell #(
 // ========================================================================= //
 
 logic                                  kill_is_unary;
+logic                                  pass_is_unary;
 logic                                  kill_is_unary_n;
+logic                                  pass_is_unary_n;
 logic                                  all_ones;
 logic                                  all_zeros_n;
 logic                                  seen_edge_x;
 logic                                  seen_edge;
+logic                                  edge_dup;
 logic                                  is_unary;
 logic                                  is_unary_n;
 
@@ -78,24 +83,35 @@ logic                                  is_unary_n;
 // ------------------------------------------------------------------------- //
 // Boundary cases.
 
-// Detect vector: 0000_0000_0000_0000
+// Detect vector (active-low): 0000_0000_0000_0000
 assign all_zeros_n = (i_x | i_prior_all_zeros_n);
 
 // Detect vector: 1111_1111_1111_1111
-assign all_ones = (i_x & i_prior_all_ones);
+assign all_ones = i_x & (i_is_first | i_prior_all_ones);
 
-assign seen_edge_x = i_x ? (~i_prior_all_zeros_n) : i_prior_all_ones;
+// Edge encountered on the current bit.
+assign seen_edge_x = (i_x ^ i_x_prev);
 
 // Accumulate edge detection across vector length.
 assign seen_edge = (i_prior_seen_edge | seen_edge_x);
 
-assign kill_is_unary = 1'b0;
+assign edge_dup = (i_prior_seen_edge & seen_edge_x);
 
-assign is_unary = (~kill_is_unary) & i_prior_is_unary;
+assign kill_is_unary = edge_dup;
 
-assign kill_is_unary_n = (~P_ADMIT_COMPLIMENT_EN);
+assign pass_is_unary =
+  ( i_x & (i_is_first | i_prior_all_ones)) |
+  (~i_x & (seen_edge_x | (i_prior_seen_edge & ~i_x_prev)));
 
-assign is_unary_n = (~kill_is_unary_n) & i_prior_is_unary_n;
+assign is_unary = pass_is_unary & (~kill_is_unary) & i_prior_is_unary;
+
+assign pass_is_unary_n =
+  (~i_x & (i_is_first | ~i_prior_all_zeros_n)) |
+  ( i_x & (seen_edge_x | (i_prior_seen_edge & i_x_prev)));
+
+assign kill_is_unary_n = (~P_ADMIT_COMPLIMENT_EN) | edge_dup;
+
+assign is_unary_n = pass_is_unary_n & (~kill_is_unary_n) & i_prior_is_unary_n;
 
 // ========================================================================= //
 //                                                                           //

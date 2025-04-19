@@ -70,14 +70,9 @@ module c #(
 //                                                                           //
 // ========================================================================= //
 
-logic [W - 1:-1]                       prior_all_ones_v;
-logic [W - 1:-1]                       prior_all_zeros_n_v;
-logic [W - 1:-1]                       prior_is_unary_v;
-logic [W - 1:-1]                       prior_is_unary_n_v;
-logic [W - 1:-1]                       prior_seen_edge_v;
 logic [W - 1:0]                        all_ones_v;
 logic [W - 1:0]                        all_zeros_n_v;
-logic [W - 1:0]                        seen_edge;
+logic [W - 1:0]                        seen_edge_v;
 logic [W - 1:0]                        is_unary_v;
 logic [W - 1:0]                        is_unary_n_v;
 logic                                  is_unary_cell;
@@ -92,33 +87,54 @@ logic                                  is_compliment;
 
 for (genvar i = 0; i < W; i++) begin : cell_GEN
 
+if (i == 0) begin : cell0_GEN
+
 c_cell #(.P_ADMIT_COMPLIMENT_EN(P_ADMIT_COMPLIMENT_EN)) u_c_cell(
 // Input
   .i_x                       (i_x[i])
+, .i_x_prev                  (1'b0)
 // Prior State
-, .i_prior_all_ones          (prior_all_ones_v[i - 1])
-, .i_prior_all_zeros_n       (prior_all_zeros_n_v[i - 1])
-, .i_prior_is_unary          (prior_is_unary_v[i - 1])
-, .i_prior_is_unary_n        (prior_is_unary_n_v[i - 1])
-, .i_prior_seen_edge         (prior_seen_edge_v[i - 1])
+, .i_is_first                (1'b1)
+, .i_prior_all_ones          (1'b0)
+, .i_prior_all_zeros_n       (1'b0)
+, .i_prior_is_unary          (1'b0)
+, .i_prior_is_unary_n        (1'b0)
+, .i_prior_seen_edge         (1'b0)
 // Future State
 , .o_all_ones                (all_ones_v[i])
 , .o_all_zeros_n             (all_zeros_n_v[i])
-, .o_seen_edge               (seen_edge[i])
+, .o_seen_edge               (seen_edge_v[i])
 // Admission Decision
 , .o_is_unary                (is_unary_v[i])
 , .o_is_unary_n              (is_unary_n_v[i])
 );
 
-end : cell_GEN
+end : cell0_GEN
+else begin : celln_GEN
 
-// ------------------------------------------------------------------------- //
-//
-assign prior_all_ones_v = {all_ones_v, 1'b0};
-assign prior_all_zeros_n_v = {all_zeros_n_v, 1'b0};
-assign prior_is_unary_v = {is_unary_v, 1'b1};
-assign prior_is_unary_n_v = {is_unary_n_v, 1'b1};
-assign prior_seen_edge_v = {seen_edge, 1'b0};
+c_cell #(.P_ADMIT_COMPLIMENT_EN(P_ADMIT_COMPLIMENT_EN)) u_c_cell(
+// Input
+  .i_x                       (i_x[i])
+, .i_x_prev                  (i_x[i - 1])
+// Prior State
+, .i_is_first                (1'b0)
+, .i_prior_all_ones          (all_ones_v[i - 1])
+, .i_prior_all_zeros_n       (all_zeros_n_v[i - 1])
+, .i_prior_is_unary          (is_unary_v[i - 1])
+, .i_prior_is_unary_n        (is_unary_n_v[i - 1])
+, .i_prior_seen_edge         (seen_edge_v[i - 1])
+// Future State
+, .o_all_ones                (all_ones_v[i])
+, .o_all_zeros_n             (all_zeros_n_v[i])
+, .o_seen_edge               (seen_edge_v[i])
+// Admission Decision
+, .o_is_unary                (is_unary_v[i])
+, .o_is_unary_n              (is_unary_n_v[i])
+);
+
+end : celln_GEN
+
+end : cell_GEN
 
 // ------------------------------------------------------------------------- //
 // Result of final-cell
@@ -158,12 +174,7 @@ assign o_is_compliment = is_compliment;
 logic UNUSED__tie_off;
 assign UNUSED__tie_off = &{ is_unary_v[W - 2:0],
                             is_unary_n_v[W - 2:0],
-                            prior_is_unary_v[W - 1],
-                            prior_is_unary_n_v[W - 1],
-                            prior_all_ones_v[W - 1],
-                            prior_all_zeros_n_v[W - 1],
-                            seen_edge[W - 1],
-                            prior_seen_edge_v[W - 1]
+                            seen_edge_v[W - 1]
                           };
 
 endmodule : c
