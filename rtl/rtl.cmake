@@ -43,3 +43,7 @@ set(P_RTL_SOURCES
     ${CMAKE_SOURCE_DIR}/rtl/p/p_is_1hot.sv
     ${CMAKE_SOURCE_DIR}/rtl/p/p.sv)
 
+set(C_RTL_SOURCES
+    ${COMMON_RTL_SOURCES}
+    ${CMAKE_SOURCE_DIR}/rtl/c/c_cell.sv
+    ${CMAKE_SOURCE_DIR}/rtl/c/c.sv)

@@ -68,6 +68,18 @@ set(P_VERILATOR_ARGS
 
 verilate(p "${P_RTL_SOURCES}" "${P_VERILATOR_ARGS}" v_p_lib)
 
+set(C_VERILATOR_ARGS
+    "-cc"
+    "-Wall"
+    "--build"
+    "-GW=${RTL_PARAM__W}"
+    "-GP_ADMIT_COMPLIMENT_EN=${RTL_PARAM__ADMIT_COMPLIMENT_LOGIC}"
+    "-I${CMAKE_SOURCE_DIR}/rtl"
+    "-unused-regexp UNUSED_*"
+    "--top-module c")
+
+verilate(c "${C_RTL_SOURCES}" "${C_VERILATOR_ARGS}" v_c_lib)
+
 set(TB_SOURCES
     "${CMAKE_SOURCE_DIR}/tb/log.h"
     "${CMAKE_SOURCE_DIR}/tb/log.cc"
@@ -86,7 +98,7 @@ set(TB_SOURCES
 # Generate TB driver
 add_executable(tb ${TB_SOURCES})
 target_include_directories(tb PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(tb ${v_u_lib} ${v_e_lib} ${v_p_lib})
+target_link_libraries(tb ${v_u_lib} ${v_e_lib} ${v_p_lib} ${v_c_lib})
 set_target_properties(tb PROPERTIES CXX_STANDARD 20)
 target_compile_options(tb PRIVATE -Wall -Werror)
 if (${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
