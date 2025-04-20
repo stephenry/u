@@ -99,8 +99,7 @@ if (EXISTS $ENV{VERILATOR_ROOT})
       COMMAND ${VERILATOR_EXE} -f ${command_file}
       OUTPUT ${generated_header} ${generated_library}
       DEPENDS ${rtl_sources}
-      DEPENDS ${command_file}
-      )
+      DEPENDS ${command_file})
     add_custom_target(
       verilate_${design}
       DEPENDS ${generated_header} ${generated_library})
