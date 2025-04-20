@@ -11,7 +11,8 @@
             "program": "${workspaceRoot}/build-w32/tb/tb",
             "args":[
                 "-d",
-                "-t", "d=u,t=DirectedExhaustiveTestCase,t=FullyRandomizedTestCase"
+                "--vcd",
+                "-t", "d=c,t=DirectedExhaustiveTestCase"
             ],
             "linux": {
                 "MIMode": "gdb"

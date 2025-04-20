@@ -47,6 +47,9 @@ inline struct Options {
 
   std::unique_ptr<Log> log;
 
+  // Enable VCD tracing.
+  bool vcd_en = false;
+
 } OPTIONS;
 
 }  // namespace tb

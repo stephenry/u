@@ -25,7 +25,10 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //========================================================================== //
 
+#include <sstream>
+
 #include "designs.h"
+#include "verilated_vcd_c.h"
 
 namespace tb {
 
@@ -54,20 +57,74 @@ template <VUnaryModule T>
 class Design : public DesignBase {
  public:
   explicit Design(const std::string& name) : DesignBase(name) {
-    uut_ = std::make_unique<T>();
+    ctxt_ = std::make_unique<VerilatedContext>();
+    if constexpr (T::traceCapable) {
+      ctxt_->traceEverOn(OPTIONS.vcd_en);
+    }
+    uut_ = std::make_unique<T>(ctxt_.get(), name.c_str());
+    if constexpr (T::traceCapable) {
+      construct_trace();
+    }
+  }
+
+  ~Design() {
+    if constexpr (T::traceCapable) {
+      destruct_trace();
+
+    }
   }
 
   std::tuple<bool, bool> is_unary(const StimulusVector& v) noexcept override {
     // Drive input
     v.to_verilated(uut_->i_x);
-    // Evaluate
-    uut_->eval();
+    // Advance simulator
+    step();
     // Return response.
     return {VBit::from_verilated(uut_->o_is_unary).to_bool(),
             VBit::from_verilated(uut_->o_is_compliment).to_bool()};
   }
 
  private:
+  void step(std::size_t n = 1) {
+    while (n--) {
+      // Advance time
+      ctxt_->timeInc(1);
+      // Evaluate
+      uut_->eval();
+
+      if constexpr (T::traceCapable) {
+        if (OPTIONS.vcd_en) {
+          vcd_->dump(ctxt_->time());
+        }
+      }
+    }
+  }
+  void construct_trace() {
+    if (!OPTIONS.vcd_en) {
+      return;
+    }
+
+    vcd_ = std::make_unique<VerilatedVcdC>();
+    uut_->trace(vcd_.get(), 99);
+    std::ostringstream ss;
+    ss << name() << ".vcd";
+    vcd_->open(ss.str().c_str());
+  }
+
+  void destruct_trace() {
+    if (!vcd_) {
+      return;
+    }
+
+    // Append some sort rundown period at end-of-simulation to
+    // emit final parts of trace.
+    step(2);
+  
+    vcd_->close();
+  }
+
+  std::unique_ptr<VerilatedContext> ctxt_;
+  std::unique_ptr<VerilatedVcdC> vcd_;
   std::unique_ptr<T> uut_;
 };
 

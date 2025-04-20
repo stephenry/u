@@ -31,6 +31,7 @@
 #include <memory>
 #include <vector>
 #include <iterator>
+#include "verilated_vcd_c.h"
 
 #include "designs.h"
 #include "random.h"
@@ -171,6 +172,8 @@ void DriverRuntime::build(std::vector<std::string_view>& args,
       parse_test_arg_string(args[++i]);
     } else if (arg == "-h" || arg == "--help") {
       help();
+    } else if (arg == "--vcd") {
+      OPTIONS.vcd_en = true;
     } else {
       os << "Invalid command line option: " << arg << "\n";
       help();
@@ -244,6 +247,7 @@ Arguments:
      --list_designs    : List available designs
   -s/--seed <integer>  : (Integer) Randomization seed
   -v/--verbose         : Verbosity
+     --vcd             : Enable VCD tracing.
   )";
   std::exit(1);
 }
