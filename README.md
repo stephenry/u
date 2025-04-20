@@ -41,6 +41,10 @@ cmake --build build_w32c -t tb
 
 # List available designs
 ./build_w32c/tb/tb --list_designs
+e
+u
+c
+p
 
 # List available tests
 ./build_w32c/tb/tb --list_tests
