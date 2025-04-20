@@ -24,6 +24,12 @@ Admit an input vector if, once incremented, the resultant vector is one-hot enco
 
 An increment operation performed by a CLA has a sub-linear complexity on W. The 1-hot detection at the output of the incrementer has sub-linear complexity on W. A conditional invert is required on the input to the incrementer. The CLA can be performed efficiently in logic for large W, but the implicit serialization of the prioritization operations may present a timing concern.
 
+Cell-based [c.sv](./rtl/c/c.sv)
+
+Admit an input vector if all prefix vectors are themselves valid unary encodings.
+
+foo
+
 ## Instructions
 
 The [Dockerfile](./.devcontainer/Dockerfile) is the recommended development environment for 'u'. Alternatively, 'u' can be built standalone using a recent version of Verilator (developed using v5.034). In this case, an additional environment variable 'VERILATOR_ROOT' pointing to the root of a Verilator installation is required. 
