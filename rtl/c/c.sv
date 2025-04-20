@@ -96,7 +96,7 @@ c_v #(
 , .o_all_set                 (all_set)
 );
 
-  if (P_ADMIT_COMPLIMENT_EN) begin : n_GEN
+if (P_ADMIT_COMPLIMENT_EN) begin : n_GEN
 
 c_cell #(
   .W(W)
