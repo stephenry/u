@@ -35,5 +35,7 @@ list(APPEND CMAKE_MODULE_PATH
 
 include(FindVerilator)
 
+option(OPT_VCD_ENABLE "Enable Verilated module tracing" FALSE)
+
 enable_testing()
 add_subdirectory(tb)

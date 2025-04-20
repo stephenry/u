@@ -77,14 +77,18 @@ if (EXISTS $ENV{VERILATOR_ROOT})
     set(generated_library_name V${design}__ALL)
     set(generated_library ${out_dir}/${generated_library_name}.a)
 
+    # Construct verilator argument list
+    set(verilator_commands ${command_list})
+    list(APPEND verilator_commands "--Mdir ${out_dir}")
+    if (${OPT_VCD_ENABLE})
+      list(APPEND verilator_commands "--trace")
+    endif ()
+    
     # Render Verilator command file.
     file(REMOVE ${command_file})
-    foreach (arg ${command_list})
+    foreach (arg ${verilator_commands})
       file(APPEND ${command_file} "${arg}\n")
     endforeach ()
-
-    # Fix-up object directory
-    file(APPEND ${command_file} "--Mdir ${out_dir}\n")
 
     foreach (rtl_source ${rtl_sources})
       file(APPEND ${command_file} "${rtl_source}\n")
@@ -92,9 +96,11 @@ if (EXISTS $ENV{VERILATOR_ROOT})
 
     # Verilator command/target definitions.
     add_custom_command(
+      COMMAND ${VERILATOR_EXE} -f ${command_file}
       OUTPUT ${generated_header} ${generated_library}
       DEPENDS ${rtl_sources}
-      COMMAND ${VERILATOR_EXE} -f ${command_file})
+      DEPENDS ${command_file}
+      )
     add_custom_target(
       verilate_${design}
       DEPENDS ${generated_header} ${generated_library})
