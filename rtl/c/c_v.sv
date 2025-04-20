@@ -43,26 +43,6 @@ module c_v #(
 , output wire logic                              o_all_set
 );
 
-// Circuit to admit an arbitrary lengthed unary-/thermometer-coded bit-vector.
-// Circuit admits both a standard unary format and, conditionally, its
-// compliment.
-//
-// Where a unary-/therometer code is defined as (for some bitwidth 'W'):
-//
-//   0 |   0000_0000_0000_0000         1111_1111_1111_1111
-//   1 |   0000_0000_0000_0001         1111_1111_1111_1110
-//   2 |   0000_0000_0000_0011         1111_1111_1111_1100
-//   3 |   0000_0000_0000_0111         1111_1111_1111_1000
-//   4 |   0000_0000_0000_1111         1111_1111_1111_0000
-//   5 |   0000_0000_0001_1111         1111_1111_1110_0000
-//   . |             .                           .
-//   . |             .                           .
-//   . |             .                           .
-//  14 |   0111_1111_1111_1111         1000_0000_0000_0000
-//
-//  Circuit does not admit the all-one or all-zero bitvector (respectively)
-//  as this is not considered to be a valid unary encoding. 
-
 // ========================================================================= //
 //                                                                           //
 // Wire(s)                                                                   //
