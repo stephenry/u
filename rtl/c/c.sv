@@ -198,8 +198,8 @@ assign UNUSED__tie_off = &{ is_unary_v[W - 2:0],
                             is_unary_n_v[W - 2:0],
                             edge_seen_v[W - 1],
                             edge_seen_n_v[W - 1],
-                            admit_v[W - 1:-1],
-                            admit_n_v[W - 1:-1]
+                            admit_v[W - 1],
+                            admit_n_v[W - 1]
                           };
 
 endmodule : c
