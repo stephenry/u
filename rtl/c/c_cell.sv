@@ -82,10 +82,6 @@ assign edge_seen = P_IS_FIRST ? 1'b0 : (is_edge | i_prior_edge_seen);
 // Detect duplicate edge-case
 assign edge_multiple = (is_edge & i_prior_edge_seen);
 
-// Detect all-set/-clear for boundary case.
-assign all_set =
-  (P_IS_COMPLIMENT ? i_x : (~i_x)) & (i_prior_all_set | P_IS_FIRST);
-
 // Admit: On first index, expected value; Otherwise, not multiple edge case.
 assign admit =
   P_IS_FIRST ? (P_IS_COMPLIMENT ? (~i_x) : i_x) : i_prior_admit & (~edge_multiple);
@@ -96,6 +92,10 @@ assign admit =
 // unary vector.
 assign is_unary =
   P_IS_FIRST ? 1'b0 : (edge_seen & admit & (P_IS_COMPLIMENT ? i_x : (~i_x)));
+
+// Detect all-set/-clear for boundary case.
+assign all_set =
+  (P_IS_COMPLIMENT ? i_x : (~i_x)) & (i_prior_all_set | P_IS_FIRST);
 
 // ========================================================================= //
 //                                                                           //
