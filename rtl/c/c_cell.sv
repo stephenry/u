@@ -39,6 +39,8 @@ module c_cell #(
 // ------------------------------------------------------------------------- //
 // Prior State
 , input wire logic                               i_is_first
+, input wire logic                               i_prior_seen0
+, input wire logic                               i_prior_seen1
 , input wire logic                               i_prior_all_ones
 , input wire logic                               i_prior_all_zeros_n
 , input wire logic                               i_prior_is_unary
@@ -50,6 +52,8 @@ module c_cell #(
 , output wire logic                              o_all_ones
 , output wire logic                              o_all_zeros_n
 , output wire logic                              o_seen_edge
+, output wire logic                              o_seen0
+, output wire logic                              o_seen1
 
 // Admission Decision
 , output wire logic                              o_is_unary
@@ -70,6 +74,8 @@ logic                                  all_ones;
 logic                                  all_zeros_n;
 logic                                  seen_edge_x;
 logic                                  seen_edge;
+logic                                  seen0;
+logic                                  seen1;
 logic                                  edge_dup;
 logic                                  is_unary;
 logic                                  is_unary_n;
@@ -90,10 +96,16 @@ assign all_zeros_n = (i_x | i_prior_all_zeros_n);
 assign all_ones = i_x & (i_is_first | i_prior_all_ones);
 
 // Edge encountered on the current bit.
-assign seen_edge_x = (i_x ^ i_x_prev);
+assign seen_edge_x = (~i_is_first) & (i_x ^ i_x_prev);
 
 // Accumulate edge detection across vector length.
 assign seen_edge = (i_prior_seen_edge | seen_edge_x);
+
+//
+assign seen0 = (~i_x) | i_prior_seen0;
+
+//
+assign seen1 =   i_x | i_prior_seen1;
 
 assign edge_dup = (i_prior_seen_edge & seen_edge_x);
 
@@ -122,6 +134,8 @@ assign is_unary_n = pass_is_unary_n & (~kill_is_unary_n) & i_prior_is_unary_n;
 assign o_all_ones = all_ones;
 assign o_all_zeros_n = all_zeros_n;
 assign o_seen_edge = seen_edge;
+assign o_seen0 = seen0;
+assign o_seen1 = seen1;
 
 assign o_is_unary = is_unary;
 assign o_is_unary_n = is_unary_n;

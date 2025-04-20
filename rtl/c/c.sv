@@ -70,6 +70,8 @@ module c #(
 //                                                                           //
 // ========================================================================= //
 
+logic [W - 1:0]                        seen1_v;
+logic [W - 1:0]                        seen0_v;
 logic [W - 1:0]                        all_ones_v;
 logic [W - 1:0]                        all_zeros_n_v;
 logic [W - 1:0]                        seen_edge_v;
@@ -95,15 +97,19 @@ c_cell #(.P_ADMIT_COMPLIMENT_EN(P_ADMIT_COMPLIMENT_EN)) u_c_cell(
 , .i_x_prev                  (1'b0)
 // Prior State
 , .i_is_first                (1'b1)
+, .i_prior_seen0             (1'b0)
+, .i_prior_seen1             (1'b0)
 , .i_prior_all_ones          (1'b0)
 , .i_prior_all_zeros_n       (1'b0)
-, .i_prior_is_unary          (1'b0)
-, .i_prior_is_unary_n        (1'b0)
+, .i_prior_is_unary          (1'b1)
+, .i_prior_is_unary_n        (1'b1)
 , .i_prior_seen_edge         (1'b0)
 // Future State
 , .o_all_ones                (all_ones_v[i])
 , .o_all_zeros_n             (all_zeros_n_v[i])
 , .o_seen_edge               (seen_edge_v[i])
+, .o_seen0                   (seen0_v[i])
+, .o_seen1                   (seen1_v[i])
 // Admission Decision
 , .o_is_unary                (is_unary_v[i])
 , .o_is_unary_n              (is_unary_n_v[i])
@@ -118,6 +124,8 @@ c_cell #(.P_ADMIT_COMPLIMENT_EN(P_ADMIT_COMPLIMENT_EN)) u_c_cell(
 , .i_x_prev                  (i_x[i - 1])
 // Prior State
 , .i_is_first                (1'b0)
+, .i_prior_seen0             (seen0_v[i - 1])
+, .i_prior_seen1             (seen1_v[i - 1])
 , .i_prior_all_ones          (all_ones_v[i - 1])
 , .i_prior_all_zeros_n       (all_zeros_n_v[i - 1])
 , .i_prior_is_unary          (is_unary_v[i - 1])
@@ -127,6 +135,8 @@ c_cell #(.P_ADMIT_COMPLIMENT_EN(P_ADMIT_COMPLIMENT_EN)) u_c_cell(
 , .o_all_ones                (all_ones_v[i])
 , .o_all_zeros_n             (all_zeros_n_v[i])
 , .o_seen_edge               (seen_edge_v[i])
+, .o_seen0                   (seen0_v[i])
+, .o_seen1                   (seen1_v[i])
 // Admission Decision
 , .o_is_unary                (is_unary_v[i])
 , .o_is_unary_n              (is_unary_n_v[i])
@@ -174,7 +184,9 @@ assign o_is_compliment = is_compliment;
 logic UNUSED__tie_off;
 assign UNUSED__tie_off = &{ is_unary_v[W - 2:0],
                             is_unary_n_v[W - 2:0],
-                            seen_edge_v[W - 1]
+                            seen_edge_v[W - 1],
+                            seen0_v[W - 1],
+                            seen1_v[W - 1]
                           };
 
 endmodule : c
