@@ -29,8 +29,10 @@
 
 module c_cell #(
 // ------------------------------------------------------------------------- //
-// Enable admission of complimented unary code
-  parameter bit P_ADMIT_COMPLIMENT_EN
+// First cell of the vector
+  parameter bit P_IS_FIRST
+// Admit complimented unary code
+, parameter bit P_IS_COMPLIMENT
 )(
 // Input bit
   input wire logic                               i_x
@@ -38,26 +40,18 @@ module c_cell #(
 
 // ------------------------------------------------------------------------- //
 // Prior State
-, input wire logic                               i_is_first
-, input wire logic                               i_prior_seen0
-, input wire logic                               i_prior_seen1
-, input wire logic                               i_prior_all_ones
-, input wire logic                               i_prior_all_zeros_n
-, input wire logic                               i_prior_is_unary
-, input wire logic                               i_prior_is_unary_n
-, input wire logic                               i_prior_seen_edge
+, input wire logic                               i_prior_admit
+, input wire logic                               i_prior_edge_seen
+, input wire logic                               i_prior_all_set
 
 // ------------------------------------------------------------------------- //
 // Future State
-, output wire logic                              o_all_ones
-, output wire logic                              o_all_zeros_n
-, output wire logic                              o_seen_edge
-, output wire logic                              o_seen0
-, output wire logic                              o_seen1
+, output wire logic                              o_admit
+, output wire logic                              o_edge_seen
+, output wire logic                              o_all_set
 
 // Admission Decision
 , output wire logic                              o_is_unary
-, output wire logic                              o_is_unary_n
 );
 
 // ========================================================================= //
@@ -66,19 +60,12 @@ module c_cell #(
 //                                                                           //
 // ========================================================================= //
 
-logic                                  kill_is_unary;
-logic                                  pass_is_unary;
-logic                                  kill_is_unary_n;
-logic                                  pass_is_unary_n;
-logic                                  all_ones;
-logic                                  all_zeros_n;
-logic                                  seen_edge_x;
-logic                                  seen_edge;
-logic                                  seen0;
-logic                                  seen1;
-logic                                  edge_dup;
+logic                                  is_edge;
+logic                                  edge_seen;
+logic                                  edge_multiple;
+logic                                  all_set;
+logic                                  admit;
 logic                                  is_unary;
-logic                                  is_unary_n;
 
 // ========================================================================= //
 //                                                                           //
@@ -86,44 +73,29 @@ logic                                  is_unary_n;
 //                                                                           //
 // ========================================================================= //
 
-// ------------------------------------------------------------------------- //
-// Boundary cases.
+// Detect edge on not-first index.
+assign is_edge = P_IS_FIRST ? 1'b0 : (i_x ^ i_x_prev);
 
-// Detect vector (active-low): 0000_0000_0000_0000
-assign all_zeros_n = (i_x | i_prior_all_zeros_n);
+// Accumulate edge detection across vector-length
+assign edge_seen = P_IS_FIRST ? 1'b0 : (is_edge | i_prior_edge_seen);
 
-// Detect vector: 1111_1111_1111_1111
-assign all_ones = i_x & (i_is_first | i_prior_all_ones);
+// Detect duplicate edge-case
+assign edge_multiple = (is_edge & i_prior_edge_seen);
 
-// Edge encountered on the current bit.
-assign seen_edge_x = (~i_is_first) & (i_x ^ i_x_prev);
+// Detect all-set/-clear for boundary case.
+assign all_set =
+  (P_IS_COMPLIMENT ? i_x : (~i_x)) & (i_prior_all_set | P_IS_FIRST);
 
-// Accumulate edge detection across vector length.
-assign seen_edge = (i_prior_seen_edge | seen_edge_x);
+// Admit: On first index, expected value; Otherwise, not multiple edge case.
+assign admit =
+  P_IS_FIRST ? (P_IS_COMPLIMENT ? (~i_x) : i_x) : i_prior_admit & (~edge_multiple);
 
-//
-assign seen0 = (~i_x) | i_prior_seen0;
-
-//
-assign seen1 =   i_x | i_prior_seen1;
-
-assign edge_dup = (i_prior_seen_edge & seen_edge_x);
-
-assign kill_is_unary = edge_dup;
-
-assign pass_is_unary =
-  ( i_x & (i_is_first | i_prior_all_ones)) |
-  (~i_x & (seen_edge_x | (i_prior_seen_edge & ~i_x_prev)));
-
-assign is_unary = pass_is_unary & (~kill_is_unary) & i_prior_is_unary;
-
-assign pass_is_unary_n =
-  (~i_x & (i_is_first | ~i_prior_all_zeros_n)) |
-  ( i_x & (seen_edge_x | (i_prior_seen_edge & i_x_prev)));
-
-assign kill_is_unary_n = (~P_ADMIT_COMPLIMENT_EN) | edge_dup;
-
-assign is_unary_n = pass_is_unary_n & (~kill_is_unary_n) & i_prior_is_unary_n;
+// Current position is valid unary encoding if at most one edge has been
+// seen and the value of vector is a valid terminal value. In the
+// degenerate case, the 1-bit vector is not considered to be a valid
+// unary vector.
+assign is_unary =
+  P_IS_FIRST ? 1'b0 : (edge_seen & admit & (P_IS_COMPLIMENT ? i_x : (~i_x)));
 
 // ========================================================================= //
 //                                                                           //
@@ -131,13 +103,10 @@ assign is_unary_n = pass_is_unary_n & (~kill_is_unary_n) & i_prior_is_unary_n;
 //                                                                           //
 // ========================================================================= //
 
-assign o_all_ones = all_ones;
-assign o_all_zeros_n = all_zeros_n;
-assign o_seen_edge = seen_edge;
-assign o_seen0 = seen0;
-assign o_seen1 = seen1;
+assign o_admit = admit;
+assign o_edge_seen = edge_seen;
+assign o_all_set = all_set;
 
 assign o_is_unary = is_unary;
-assign o_is_unary_n = is_unary_n;
 
 endmodule : c_cell

@@ -70,13 +70,16 @@ module c #(
 //                                                                           //
 // ========================================================================= //
 
-logic [W - 1:0]                        seen1_v;
-logic [W - 1:0]                        seen0_v;
-logic [W - 1:0]                        all_ones_v;
-logic [W - 1:0]                        all_zeros_n_v;
-logic [W - 1:0]                        seen_edge_v;
+logic [W - 1:-1]                       x;
+logic [W - 1:-1]                       admit_v;
+logic [W - 1:-1]                       admit_n_v;
+logic [W - 1:-1]                       edge_seen_v;
+logic [W - 1:-1]                       edge_seen_n_v;
+logic [W - 1:-1]                       all_set_v;
+logic [W - 1:-1]                       all_set_n_v;
 logic [W - 1:0]                        is_unary_v;
 logic [W - 1:0]                        is_unary_n_v;
+
 logic                                  is_unary_cell;
 logic                                  is_unary;
 logic                                  is_compliment;
@@ -87,62 +90,71 @@ logic                                  is_compliment;
 //                                                                           //
 // ========================================================================= //
 
+// Initial values
+assign x = {i_x, 1'b0};
+
+assign admit_v[-1] = 1'b1;
+assign admit_n_v[-1] = 1'b1;
+
+assign edge_seen_v[-1] = 1'b0;
+assign edge_seen_n_v[-1] = 1'b0;
+
+assign all_set_v[-1] = 1'b0;
+assign all_set_n_v[-1] = 1'b0;
+
 for (genvar i = 0; i < W; i++) begin : cell_GEN
 
-if (i == 0) begin : cell0_GEN
+localparam bit P_IS_FIRST = (i == 0);
 
-c_cell #(.P_ADMIT_COMPLIMENT_EN(P_ADMIT_COMPLIMENT_EN)) u_c_cell(
+c_cell #(
+  .P_IS_FIRST                (P_IS_FIRST)
+, .P_IS_COMPLIMENT           (1'b0)
+) u_c_cell(
 // Input
-  .i_x                       (i_x[i])
-, .i_x_prev                  (1'b0)
+  .i_x                       (x[i])
+, .i_x_prev                  (x[i - 1])
 // Prior State
-, .i_is_first                (1'b1)
-, .i_prior_seen0             (1'b0)
-, .i_prior_seen1             (1'b0)
-, .i_prior_all_ones          (1'b0)
-, .i_prior_all_zeros_n       (1'b0)
-, .i_prior_is_unary          (1'b1)
-, .i_prior_is_unary_n        (1'b1)
-, .i_prior_seen_edge         (1'b0)
+, .i_prior_admit             (admit_v[i - 1])
+, .i_prior_edge_seen         (edge_seen_v[i - 1])
+, .i_prior_all_set           (all_set_v[i - 1])
 // Future State
-, .o_all_ones                (all_ones_v[i])
-, .o_all_zeros_n             (all_zeros_n_v[i])
-, .o_seen_edge               (seen_edge_v[i])
-, .o_seen0                   (seen0_v[i])
-, .o_seen1                   (seen1_v[i])
+, .o_admit                   (admit_v[i])
+, .o_edge_seen               (edge_seen_v[i])
+, .o_all_set                 (all_set_v[i])
 // Admission Decision
 , .o_is_unary                (is_unary_v[i])
-, .o_is_unary_n              (is_unary_n_v[i])
 );
 
-end : cell0_GEN
-else begin : celln_GEN
+if (P_ADMIT_COMPLIMENT_EN) begin : cell_compliment_GEN
 
-c_cell #(.P_ADMIT_COMPLIMENT_EN(P_ADMIT_COMPLIMENT_EN)) u_c_cell(
+c_cell #(
+  .P_IS_FIRST                (P_IS_FIRST)
+, .P_IS_COMPLIMENT           (1'b0)
+) u_c_cell_compliment (
 // Input
-  .i_x                       (i_x[i])
-, .i_x_prev                  (i_x[i - 1])
+  .i_x                       (x[i])
+, .i_x_prev                  (x[i - 1])
 // Prior State
-, .i_is_first                (1'b0)
-, .i_prior_seen0             (seen0_v[i - 1])
-, .i_prior_seen1             (seen1_v[i - 1])
-, .i_prior_all_ones          (all_ones_v[i - 1])
-, .i_prior_all_zeros_n       (all_zeros_n_v[i - 1])
-, .i_prior_is_unary          (is_unary_v[i - 1])
-, .i_prior_is_unary_n        (is_unary_n_v[i - 1])
-, .i_prior_seen_edge         (seen_edge_v[i - 1])
+, .i_prior_admit             (admit_n_v[i - 1])
+, .i_prior_edge_seen         (edge_seen_n_v[i - 1])
+, .i_prior_all_set           (all_set_n_v[i - 1])
 // Future State
-, .o_all_ones                (all_ones_v[i])
-, .o_all_zeros_n             (all_zeros_n_v[i])
-, .o_seen_edge               (seen_edge_v[i])
-, .o_seen0                   (seen0_v[i])
-, .o_seen1                   (seen1_v[i])
+, .o_admit                   (admit_n_v[i])
+, .o_edge_seen               (edge_seen_n_v[i])
+, .o_all_set                 (all_set_n_v[i])
 // Admission Decision
-, .o_is_unary                (is_unary_v[i])
-, .o_is_unary_n              (is_unary_n_v[i])
+, .o_is_unary                (is_unary_n_v[i])
 );
 
-end : celln_GEN
+end : cell_compliment_GEN
+else begin : not_cell_compliment_GEN
+
+assign admit_n_v[i] = 1'b0;
+assign edge_seen_n_v[i] = 1'b0;
+assign all_set_n_v[i] = 1'b0;
+assign is_unary_n_v[i] = 1'b0;
+
+end : not_cell_compliment_GEN
 
 end : cell_GEN
 
@@ -158,9 +170,9 @@ assign is_unary_cell = (is_unary_v[W - 1] | is_unary_n_v[W - 1]);
 //
 //   2.2) Or, when P_ADMIT_COMPLIMENT_EN, the all-ones boundary-case vector.
 //
-assign is_unary = is_unary_cell |                              // (1)
-                  (~all_zeros_n_v[W - 1]) |                    // (2.1)
-                  (P_ADMIT_COMPLIMENT_EN & all_ones_v[W - 1]); // (2.2)
+assign is_unary = is_unary_cell |                                // (1)
+                  all_set_v[W - 1] |                             // (2.1)
+                  (P_ADMIT_COMPLIMENT_EN & all_set_n_v[W - 1]);  // (2.2)
 
 // ------------------------------------------------------------------------- //
 // is_compliment whenever configured to detect such encodings and MSB is set.
@@ -184,9 +196,10 @@ assign o_is_compliment = is_compliment;
 logic UNUSED__tie_off;
 assign UNUSED__tie_off = &{ is_unary_v[W - 2:0],
                             is_unary_n_v[W - 2:0],
-                            seen_edge_v[W - 1],
-                            seen0_v[W - 1],
-                            seen1_v[W - 1]
+                            edge_seen_v[W - 1],
+                            edge_seen_n_v[W - 1],
+                            admit_v[W - 1:-1],
+                            admit_n_v[W - 1:-1]
                           };
 
 endmodule : c

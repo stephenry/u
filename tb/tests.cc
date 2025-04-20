@@ -161,10 +161,15 @@ class DirectedExhaustiveTestCase : public TestCase {
 
  private:
   bool zero_case(DesignBase* b) {
-    const StimulusVector zero_case = is_compliment_
-                                         ? StimulusVector::all_ones()
-                                         : StimulusVector::all_zeros();
-    return check(b, zero_case);
+    // All-zeros case, 0 standard encoding.
+    if (!check(b, StimulusVector::all_zeros()))
+      return false;
+
+    // All-ones case, 0 complimented encoding
+    if (!check(b, StimulusVector::all_ones()))
+      return false;
+
+    return true;
   }
 
   bool all_valid_unary_cases(DesignBase* b) {
