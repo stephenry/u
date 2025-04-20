@@ -137,4 +137,5 @@ add_test(NAME test
     -t d=u,t=FullyRandomizedTestCase,t=DirectedExhaustiveTestCase
     -t d=e,t=FullyRandomizedTestCase,t=DirectedExhaustiveTestCase
     -t d=p,t=FullyRandomizedTestCase,t=DirectedExhaustiveTestCase
+    -t d=c,t=FullyRandomizedTestCase,t=DirectedExhaustiveTestCase
   )
