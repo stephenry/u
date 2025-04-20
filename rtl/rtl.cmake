@@ -45,5 +45,6 @@ set(P_RTL_SOURCES
 
 set(C_RTL_SOURCES
     ${COMMON_RTL_SOURCES}
-    ${CMAKE_SOURCE_DIR}/rtl/c/c_cell.sv
+    ${CMAKE_SOURCE_DIR}/rtl/c/c_v_cell.sv
+    ${CMAKE_SOURCE_DIR}/rtl/c/c_v.sv
     ${CMAKE_SOURCE_DIR}/rtl/c/c.sv)

@@ -27,12 +27,12 @@
 
 `include "common_defs.vh"
 
-module c #(
+module c_v #(
 // ------------------------------------------------------------------------- //
 // Bit-Width
   parameter int W
 // Enable admission of complimented unary code
-, parameter bit P_ADMIT_COMPLIMENT_EN
+, parameter bit P_IS_COMPLIMENT
 ) (
 // ------------------------------------------------------------------------- //
 // Input vector
@@ -40,8 +40,7 @@ module c #(
 
 // Admission Decision
 , output wire logic                              o_is_unary
-// Compliment form unary.
-, output wire logic                              o_is_compliment
+, output wire logic                              o_all_set
 );
 
 // Circuit to admit an arbitrary lengthed unary-/thermometer-coded bit-vector.
@@ -70,12 +69,13 @@ module c #(
 //                                                                           //
 // ========================================================================= //
 
+logic [W - 1:0]                        admit_v;
+logic [W - 1:0]                        edge_seen_v;
+logic [W - 1:0]                        all_set_v;
+logic [W - 1:0]                        is_unary_v;
+
 logic                                  all_set;
-logic                                  all_set_n;
-logic                                  is_unary_v;
-logic                                  is_unary_v_n;
 logic                                  is_unary;
-logic                                  is_compliment;
 
 // ========================================================================= //
 //                                                                           //
@@ -83,66 +83,51 @@ logic                                  is_compliment;
 //                                                                           //
 // ========================================================================= //
 
-if (W > 1) begin : w_GEN
-
-c_v #(
-  .W(W)
-, .P_IS_COMPLIMENT           (1'b0)
-) u_c_v(
+c_v_cell #(
+  .P_IS_FIRST                (1'b1)
+, .P_IS_COMPLIMENT           (P_IS_COMPLIMENT)
+) u_c_v_cell(
 // Input
-  .i_x                       (i_x)
+  .i_x                       (i_x[0])
+, .i_x_prev                  (1'b0)
+// Prior State
+, .i_prior_admit             (1'b1)
+, .i_prior_edge_seen         (1'b0)
+, .i_prior_all_set           (1'b0)
+// Future State
+, .o_admit                   (admit_v[0])
+, .o_edge_seen               (edge_seen_v[0])
+, .o_all_set                 (all_set_v[0])
 // Admission Decision
-, .o_is_unary                (is_unary_v)
-, .o_all_set                 (all_set)
+, .o_is_unary                (is_unary_v[0])
 );
 
-  if (P_ADMIT_COMPLIMENT_EN) begin : n_GEN
+for (genvar i = 1; i < W; i++) begin : cell_GEN
 
-c_cell #(
-  .W(W)
-, .P_IS_COMPLIMENT           (1'b1)
-) u_c_cell(
+c_v_cell #(
+  .P_IS_FIRST                (1'b0)
+, .P_IS_COMPLIMENT           (P_IS_COMPLIMENT)
+) u_c_v_cell (
 // Input
-  .i_x                       (i_x)
+  .i_x                       (i_x[i])
+, .i_x_prev                  (i_x[i - 1])
+// Prior State
+, .i_prior_admit             (admit_v[i - 1])
+, .i_prior_edge_seen         (edge_seen_v[i - 1])
+, .i_prior_all_set           (all_set_v[i - 1])
+// Future State
+, .o_admit                   (admit_v[i])
+, .o_edge_seen               (edge_seen_v[i])
+, .o_all_set                 (all_set_v[i])
 // Admission Decision
-, .o_is_unary                (is_unary_v_n)
-, .o_all_set                 (all_set_n)
+, .o_is_unary                (is_unary_v[i])
 );
 
-  end : n_GEN
-  else begin : not_n_GEN
+end : cell_GEN
 
-assign is_unary_v_n = 1'b0;
-assign all_set_n = 1'b0;
+assign all_set = all_set_v[W - 1];
 
-  end :not_n_GEN
-end : w_GEN
-else begin : not_W_GEN
-
-assign is_unary_v = 1'b0;
-assign is_unary_v_n = 1'b0;
-
-assign all_set = 1'b0;
-assign all_set_n = 1'b0;
-
-end : not_W_GEN
-
-// ------------------------------------------------------------------------- //
-// is_unary iff:
-//
-//   1) cells concensus is normal-form unary encoding.
-//
-//   2.1) Or, the all-zeros bounary-case vector.
-//
-//   2.2) Or, when P_ADMIT_COMPLIMENT_EN, the all-ones boundary-case vector.
-//
-assign is_unary = (is_unary_v | is_unary_v_n) |         // (1)
-                  all_set |                             // (2.1)
-                  (P_ADMIT_COMPLIMENT_EN & all_set_n);  // (2.2)
-
-// ------------------------------------------------------------------------- //
-// is_compliment whenever configured to detect such encodings and MSB is set.
-assign is_compliment = (P_ADMIT_COMPLIMENT_EN & i_x[W - 1]);
+assign is_unary = is_unary_v[W - 1];
 
 // ========================================================================= //
 //                                                                           //
@@ -151,6 +136,18 @@ assign is_compliment = (P_ADMIT_COMPLIMENT_EN & i_x[W - 1]);
 // ========================================================================= //
 
 assign o_is_unary = is_unary;
-assign o_is_compliment = is_compliment;
+assign o_all_set = all_set;
 
-endmodule : c
+// ========================================================================= //
+//                                                                           //
+// UNUSED                                                                    //
+//                                                                           //
+// ========================================================================= //
+
+logic UNUSED__tie_off;
+assign UNUSED__tie_off = &{ is_unary_v[W - 2:0],
+                            edge_seen_v[W - 1],
+                            admit_v[W - 1]
+                          };
+
+endmodule : c_v

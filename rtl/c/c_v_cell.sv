@@ -27,7 +27,7 @@
 
 `include "common_defs.vh"
 
-module c_cell #(
+module c_v_cell #(
 // ------------------------------------------------------------------------- //
 // First cell of the vector
   parameter bit P_IS_FIRST
@@ -109,4 +109,4 @@ assign o_all_set = all_set;
 
 assign o_is_unary = is_unary;
 
-endmodule : c_cell
+endmodule : c_v_cell
