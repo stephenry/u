@@ -26,9 +26,9 @@ An increment operation performed by a CLA has a sub-linear complexity on W. The 
 
 Cell-based [c.sv](./rtl/c/c.sv)
 
-Admit an input vector if all prefix vectors are themselves valid unary encodings.
+Admit an input vector if all prefix sub-vectors are themselves valid unary encodings.
 
-foo
+An array of cells is used to detect a valid unary encoding from LSB to MSB. Circuit complexity is linear on W and is therefore inefficient when compared against the other solutions. Solution is noteworthy due to its non-trivial circuit implementation.
 
 ## Instructions
 
