@@ -31,16 +31,16 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-ARG VERILATOR_VER="5.034"
-WORKDIR /tools
-RUN wget https://github.com/verilator/verilator/archive/refs/tags/v${VERILATOR_VER}.tar.gz \
-  && tar -zxf v${VERILATOR_VER}.tar.gz \
-  && cd verilator-${VERILATOR_VER} \
-  && autoconf \
-  && ./configure \
-  && make \
-  && cd .. \
-  && rm -rf v${VERILATOR_VER}.tar.gz
+# ARG VERILATOR_VER="5.034"
+# WORKDIR /tools
+# RUN wget https://github.com/verilator/verilator/archive/refs/tags/v${VERILATOR_VER}.tar.gz \
+#   && tar -zxf v${VERILATOR_VER}.tar.gz \
+#   && cd verilator-${VERILATOR_VER} \
+#   && autoconf \
+#   && ./configure \
+#   && make \
+#   && cd .. \
+#   && rm -rf v${VERILATOR_VER}.tar.gz
 
 # Required for the build system.
-ENV VERILATOR_ROOT="/tools/verilator-${VERILATOR_VER}"
+#  ENV VERILATOR_ROOT="/tools/verilator-${VERILATOR_VER}"
