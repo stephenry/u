@@ -40,21 +40,26 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Switch to vscode user.
+# Switch to vscode user
 USER vscode
 WORKDIR $HOME
 
-# Skywater 130nm PDK
+# Create a tools directory (writable and clean)
+RUN mkdir tools && cd tools
 
-# Install volare as user and add its bin to PATH
+# Skywater 130nm PDK
 RUN pip install --user volare \
     && echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc \
     && export PATH="$HOME/.local/bin:$PATH" \
-    && volare enable --pdk sky130 78b7bc32ddb4b6f14f76883c2e2dc5b5de9d1cbc
-ENV PATH="$HOME/.local/bin:${PATH}"
+    && volare enable --pdk sky130  # Or keep your hash if it works
 
-# synlig - SystemVerilog compatible Yosys
-RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
-  && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
-  && rm synlig-2d838ed-2024-12-10.tar.gz
-ENV SYNLIG_ROOT=$HOME/synlig
+ENV PATH="$HOME/.local/bin:${PATH}"
+ENV PDK_ROOT=$HOME/.volare
+
+# Synlig - Download and extract to the tools subdir
+RUN cd tools \
+    && wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
+    && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
+    && rm synlig-2d838ed-2024-12-10.tar.gz
+
+ENV SYNLIG_ROOT=$HOME/tools/synlig
