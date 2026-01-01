@@ -41,25 +41,18 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # Switch to vscode user
-USER vscode
-WORKDIR $HOME
-
-# Create a tools directory (writable and clean)
-RUN mkdir tools && cd tools
-
-# Skywater 130nm PDK
-RUN pip install --user volare \
-    && echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc \
-    && export PATH="$HOME/.local/bin:$PATH" \
-    && volare enable --pdk sky130  # Or keep your hash if it works
-
-ENV PATH="$HOME/.local/bin:${PATH}"
-ENV PDK_ROOT=$HOME/.volare
+WORKDIR /tools
 
 # Synlig - Download and extract to the tools subdir
-RUN cd tools \
-    && wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
+RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
     && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
+    && chmod +x synlig/synlig \
     && rm synlig-2d838ed-2024-12-10.tar.gz
+ENV SYNLIG_ROOT=/tools/synlig
 
-ENV SYNLIG_ROOT=$HOME/tools/synlig
+# Install volare PDK manager
+RUN pip install volare
+
+# Install Skywater 130nm PDK to user
+USER vscode
+RUN volare enable --pdk sky130 78b7bc32ddb4b6f14f76883c2e2dc5b5de9d1cbc
