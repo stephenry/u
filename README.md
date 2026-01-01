@@ -51,6 +51,7 @@ e
 u
 c
 p
+o
 
 # List available tests
 ./build_w32c/tb/tb --list_tests
