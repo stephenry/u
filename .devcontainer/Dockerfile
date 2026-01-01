@@ -45,8 +45,13 @@ USER vscode
 WORKDIR $HOME
 
 # Skywater 130nm PDK
-RUN pip install volare \
-  && volare enable --pdk sky130 0fe599b2afb6708d281543108caf8310912f54af
+
+# Install volare as user and add its bin to PATH
+RUN pip install --user volare \
+    && echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc \
+    && export PATH="$HOME/.local/bin:$PATH" \
+    && volare enable --pdk sky130 78b7bc32ddb4b6f14f76883c2e2dc5b5de9d1cbc
+ENV PATH="$HOME/.local/bin:${PATH}"
 
 # synlig - SystemVerilog compatible Yosys
 RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
