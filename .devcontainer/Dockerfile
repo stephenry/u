@@ -41,14 +41,8 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # Switch to vscode user.
-ARG USERNAME=vscode
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -s /bin/bash
-USER $USERNAME
-
-WORKDIR /home/$USERNAME
+USER vscode
+WORKDIR $HOME
 
 # Skywater 130nm PDK
 RUN pip install volare \
@@ -58,5 +52,4 @@ RUN pip install volare \
 RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
   && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
   && rm synlig-2d838ed-2024-12-10.tar.gz
-
-ENV SYNLIG_ROOT=/home/$USERNAME/synlig
+ENV SYNLIG_ROOT=$HOME/synlig
