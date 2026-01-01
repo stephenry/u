@@ -43,45 +43,15 @@ RUN apt-get update \
 WORKDIR /tools
 
 # Skywater 130nm PDK
+USER vscode
 RUN pip install volare \
   && volare enable --pdk sky130 0fe599b2afb6708d281543108caf8310912f54af
+USER root
 
 # synlig - SystemVerilog compatible Yosys
 RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
   && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
+  && chmod +x synlig/synlig \
   && rm synlig-2d838ed-2024-12-10.tar.gz
 
 ENV SYNLIG_ROOT=/tools/synlig
-
-# CUDD library (dependency for OpenSTA)
-RUN git clone https://github.com/davidkebo/cudd.git \
-  && cd cudd/cudd_versions \
-  && tar -xvf cudd-3.0.0.tar.gz \
-  && cd cudd-3.0.0 \
-  && ./configure --prefix=/tools/cudd \
-  && make \
-  && make install \
-  && cd .. \
-  && rm -rf cudd-3.0.0
-
-# OpenSTA
-RUN git clone https://github.com/parallaxsw/OpenSTA \
-  && cd OpenSTA \
-  && mkdir build && cd build \
-  && cmake -DCUDD_DIR=/tools/cudd .. \
-  && make
-
-ENV OPENSTA_ROOT=/tools/OpenSTA
-
-ARG VERILATOR_VER="5.034"
-RUN wget https://github.com/verilator/verilator/archive/refs/tags/v${VERILATOR_VER}.tar.gz \
-  && tar -zxf v${VERILATOR_VER}.tar.gz \
-  && cd verilator-${VERILATOR_VER} \
-  && autoconf \
-  && ./configure \
-  && make \
-  && cd .. \
-  && rm -rf v${VERILATOR_VER}.tar.gz
-
-# Required for the build system.
-ENV VERILATOR_ROOT="/tools/verilator-${VERILATOR_VER}"
