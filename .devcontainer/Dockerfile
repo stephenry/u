@@ -47,34 +47,37 @@ RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d
   && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
   && rm synlig-2d838ed-2024-12-10.tar.gz
 
+ENV SYNLIG_ROOT=/tools/synlig
+
 # CUDD library (dependency for OpenSTA)
 RUN git clone https://github.com/davidkebo/cudd.git \
-  && pushd cudd/cudd_versions \
+  && cd cudd/cudd_versions \
   && tar -xvf cudd-3.0.0.tar.gz \
   && cd cudd-3.0.0 \
   && ./configure --prefix=/tools/cudd \
   && make \
   && make install \
-  && popd \
+  && cd .. \
   && rm -rf cudd
 
 # OpenSTA
 RUN git clone https://github.com/parallaxsw/OpenSTA \
-  && pushd OpenSTA \
+  && cd OpenSTA \
   && mkdir build && cd build \
   && cmake -DCUDD_ROOT=/tools/cudd .. \
-  && make \
-  && popd
+  && make
 
-  # ARG VERILATOR_VER="5.034"
-# RUN wget https://github.com/verilator/verilator/archive/refs/tags/v${VERILATOR_VER}.tar.gz \
-#   && tar -zxf v${VERILATOR_VER}.tar.gz \
-#   && cd verilator-${VERILATOR_VER} \
-#   && autoconf \
-#   && ./configure \
-#   && make \
-#   && cd .. \
-#   && rm -rf v${VERILATOR_VER}.tar.gz
+ENV OPENSTA_ROOT=/tools/OpenSTA
+
+ARG VERILATOR_VER="5.034"
+RUN wget https://github.com/verilator/verilator/archive/refs/tags/v${VERILATOR_VER}.tar.gz \
+  && tar -zxf v${VERILATOR_VER}.tar.gz \
+  && cd verilator-${VERILATOR_VER} \
+  && autoconf \
+  && ./configure \
+  && make \
+  && cd .. \
+  && rm -rf v${VERILATOR_VER}.tar.gz
 
 # Required for the build system.
-#  ENV VERILATOR_ROOT="/tools/verilator-${VERILATOR_VER}"
+ENV VERILATOR_ROOT="/tools/verilator-${VERILATOR_VER}"
