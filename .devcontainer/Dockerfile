@@ -46,12 +46,40 @@ WORKDIR /tools
 # Synlig - Download and extract to the tools subdir
 RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
     && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
-    && chmod +x synlig/synlig \
+    && chown -R vscode synlig/ \
     && rm synlig-2d838ed-2024-12-10.tar.gz
 ENV SYNLIG_ROOT=/tools/synlig
 
 # Install volare PDK manager
 RUN pip install volare
+
+# CUDD library (dependency for OpenSTA)
+RUN git clone https://github.com/davidkebo/cudd.git \
+  && cd cudd/cudd_versions \
+  && tar -xvf cudd-3.0.0.tar.gz \
+  && cd cudd-3.0.0 \
+  && ./configure --prefix=/tools/cudd-3.0.0 \
+  && make \
+  && make install \
+  && rm -rf /tools/cudd
+
+# OpenSTA
+RUN git clone https://github.com/parallaxsw/OpenSTA \
+  && cd OpenSTA \
+  && mkdir build && cd build \
+  && cmake -DCUDD_DIR=/tools/cudd-3.0.0 .. \
+  && make
+ENV OPENSTA_ROOT=/tools/OpenSTA
+
+ARG VERILATOR_VER="5.034"
+RUN wget https://github.com/verilator/verilator/archive/refs/tags/v${VERILATOR_VER}.tar.gz \
+  && tar -zxf v${VERILATOR_VER}.tar.gz \
+  && cd verilator-${VERILATOR_VER} \
+  && autoconf \
+  && ./configure \
+  && make \
+  && cd .. \
+  && rm -rf v${VERILATOR_VER}.tar.gz
 
 # Install Skywater 130nm PDK to user
 USER vscode
