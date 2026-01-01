@@ -28,11 +28,41 @@ RUN apt-get update \
       swig \
       uuid-dev \
       zlib1g-dev \
+      libreadline-dev \
+      yosys \
+      curl \
+      jq \
+      tar \
+      wget \
+      libeigen3-dev \
+      tcl-dev \
+      tcl-tclreadline \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# ARG VERILATOR_VER="5.034"
-# WORKDIR /tools
+WORKDIR /tools
+RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
+  && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
+  && rm synlig-2d838ed-2024-12-10.tar.gz
+
+RUN git clone https://github.com/davidkebo/cudd.git \
+  && pushd cudd/cudd_versions \
+  && tar -xvf cudd-3.0.0.tar.gz \
+  && cd cudd-3.0.0 \
+  && ./configure --prefix=/tools/cudd \
+  && make \
+  && make install \
+  && popd \
+  && rm -rf cudd
+
+RUN git clone https://github.com/parallaxsw/OpenSTA \
+  && pushd OpenSTA \
+  && mkdir build && cd build \
+  && cmake -DCUDD_ROOT=/tools/cudd .. \
+  && make \
+  && popd
+
+  # ARG VERILATOR_VER="5.034"
 # RUN wget https://github.com/verilator/verilator/archive/refs/tags/v${VERILATOR_VER}.tar.gz \
 #   && tar -zxf v${VERILATOR_VER}.tar.gz \
 #   && cd verilator-${VERILATOR_VER} \
