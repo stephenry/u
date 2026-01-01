@@ -30,6 +30,14 @@ Admit an input vector if all prefix sub-vectors are themselves valid partial una
 
 An array of cells is used to detect a valid unary encoding from LSB to MSB. The LSB of the vector must be a valid value for a unary encoding: 1'b1 in the normal-form case, 1'b0 in the complimented-form case. Detect presence of edges with increasing index. The presence of duplicate edges in the vector kills the match operation. Exactly one edge must be present to match a valid unary encoding. The final index must correspond to a valid terminal value for the unary encoding: 1'b0 in the normal-form case, 1'b1 in the complimented-form for case. Circuit complexity is linear on W and is therefore inefficient when compared against the other solutions. Solution is noteworthy due to its non-trivial circuit implementation.
 
+#### Incrementer-based [o.sv](./rtl/o/o.sv)
+
+Admit an input vector if its increment does not overlap with the original value.
+
+Unary codes are a unique encoding where the carry-out is at the first zero bit
+in the input vector. This is the canonical solution to the unary detection
+problem.
+
 ## Instructions
 
 The [Dockerfile](./.devcontainer/Dockerfile) is the recommended development environment for 'u'. Alternatively, 'u' can be built standalone using a recent version of Verilator (developed using v5.034). In this case, an additional environment variable 'VERILATOR_ROOT' pointing to the root of a Verilator installation is required. 
