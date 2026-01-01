@@ -165,4 +165,7 @@ DECLARE_DESIGN(p);
 #include "VObj_c/Vc.h"
 DECLARE_DESIGN(c);
 
+#include "VObj_o/Vo.h"
+DECLARE_DESIGN(o);
+
 #undef DECLARE_DESIGN

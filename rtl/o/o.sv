@@ -95,7 +95,7 @@ assign is_unary_nc = ((i_x + 'b1) & i_x) == '0;
 //
 if (P_ADMIT_COMPLIMENT_EN) begin: admit_c_GEN
   assign is_unary_c = (((~i_x) + 'b1) & i_x) == '0;
-  assign is_compliemnt = i_x[W - 1];
+  assign is_compliment = i_x[W - 1];
 end: admit_c_GEN
 else begin: no_admit_c_GEN
   assign is_unary_c = 'b0;
