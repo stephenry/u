@@ -58,13 +58,13 @@ RUN git clone https://github.com/davidkebo/cudd.git \
   && make \
   && make install \
   && cd .. \
-  && rm -rf cudd
+  && rm -rf cudd-3.0.0
 
 # OpenSTA
 RUN git clone https://github.com/parallaxsw/OpenSTA \
   && cd OpenSTA \
   && mkdir build && cd build \
-  && cmake -DCUDD_ROOT=/tools/cudd .. \
+  && cmake -DCUDD_DIR=/tools/cudd .. \
   && make
 
 ENV OPENSTA_ROOT=/tools/OpenSTA
