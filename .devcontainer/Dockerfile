@@ -41,10 +41,13 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tools
+
+# synlig - SystemVerilog compatible Yosys
 RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
   && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
   && rm synlig-2d838ed-2024-12-10.tar.gz
 
+# CUDD library (dependency for OpenSTA)
 RUN git clone https://github.com/davidkebo/cudd.git \
   && pushd cudd/cudd_versions \
   && tar -xvf cudd-3.0.0.tar.gz \
@@ -55,6 +58,7 @@ RUN git clone https://github.com/davidkebo/cudd.git \
   && popd \
   && rm -rf cudd
 
+# OpenSTA
 RUN git clone https://github.com/parallaxsw/OpenSTA \
   && pushd OpenSTA \
   && mkdir build && cd build \
