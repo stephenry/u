@@ -1,8 +1,10 @@
 # u
 
+A collection of efficient circuits to determine if an arbitrary length input vector is a valid unary encoding.
+
 ## Synopsis
 
-A collection of efficient circuits to determine if an arbitrary length input vector is a valid unary encoding.
+Unary (also called Thermometer) codes are common in logic design. The projects contained herein are an exploration of various unary-code detection strategies in logic. For the day-to-day logic designer, such circuits are too small to become relevant in a non-trivial design, but in the context of a small, portfolio piece they are interesting for a small weekend PPA exploration.
 
 ## Detail
 
