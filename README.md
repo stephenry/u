@@ -18,7 +18,7 @@ Admit an input vector if there is at most one edge transition across the span.
 
 Edge detection between adjacent bits is performed efficiently using an XOR. 1-hot detection is sub-linear complexity on W. Some additional qualification is required on final decision to determine final result. This does not represent a timing concern.
 
-#### Incrementer-Based [p.sv](./rtl/p/p.sv): 
+#### Incrementer-Based (P) [p.sv](./rtl/p/p.sv): 
 
 Admit an input vector if, once incremented, the resultant vector is one-hot encoded.
 
@@ -30,13 +30,11 @@ Admit an input vector if all prefix sub-vectors are themselves valid partial una
 
 An array of cells is used to detect a valid unary encoding from LSB to MSB. The LSB of the vector must be a valid value for a unary encoding: 1'b1 in the normal-form case, 1'b0 in the complimented-form case. Detect presence of edges with increasing index. The presence of duplicate edges in the vector kills the match operation. Exactly one edge must be present to match a valid unary encoding. The final index must correspond to a valid terminal value for the unary encoding: 1'b0 in the normal-form case, 1'b1 in the complimented-form for case. Circuit complexity is linear on W and is therefore inefficient when compared against the other solutions. Solution is noteworthy due to its non-trivial circuit implementation.
 
-#### Incrementer-based [o.sv](./rtl/o/o.sv)
+#### Incrementer-based (O) [o.sv](./rtl/o/o.sv)
 
 Admit an input vector if its increment does not overlap with the original value.
 
-Unary codes are a unique encoding where the carry-out is at the first zero bit
-in the input vector. This is the canonical solution to the unary detection
-problem.
+Unary codes are a unique encoding where the carry-out is at the first zero bit in the input vector. This is the canonical solution to the unary detection problem.
 
 ## Instructions
 
