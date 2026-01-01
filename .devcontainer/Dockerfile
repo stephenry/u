@@ -42,6 +42,10 @@ RUN apt-get update \
 
 WORKDIR /tools
 
+# Skywater 130nm PDK
+RUN pip install volare \
+  && volare enable --pdk sky130 0fe599b2afb6708d281543108caf8310912f54af
+
 # synlig - SystemVerilog compatible Yosys
 RUN wget https://github.com/chipsalliance/synlig/releases/download/2024-12-10-2d838ed/synlig-2d838ed-2024-12-10.tar.gz \
   && tar -xzf synlig-2d838ed-2024-12-10.tar.gz \
