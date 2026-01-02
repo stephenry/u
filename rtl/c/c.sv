@@ -101,7 +101,7 @@ if (P_ADMIT_COMPLIMENT_EN) begin : n_GEN
 c_v #(
   .W(W)
 , .P_IS_COMPLIMENT           (1'b1)
-) u_c_cell(
+) u_c_v(
 // Input
   .i_x                       (i_x)
 // Admission Decision
