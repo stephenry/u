@@ -25,22 +25,16 @@
 ## POSSIBILITY OF SUCH DAMAGE.
 ##========================================================================== //
 
-cmake_minimum_required(VERSION 3.22)
-project(u)
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/run_syn.py.in
+    ${CMAKE_CURRENT_BINARY_DIR}/run_syn.py
+    @ONLY
+)
 
-list(APPEND CMAKE_MODULE_PATH
- ${CMAKE_SOURCE_DIR}/rtl
- ${CMAKE_SOURCE_DIR}/cmake
- )
-
-include(FindVerilator)
-include(FindOpenSTA)
-include(FindSynlig)
-include(SetupPython)
-
-option(OPT_VCD_ENABLE "Enable Verilated module tracing" FALSE)
-
-enable_testing()
-add_subdirectory(py)
-add_subdirectory(tb)
-add_subdirectory(syn)
+add_custom_target(run_synthesis_flow
+    COMMAND ${U_PYTHON3} ${CMAKE_CURRENT_BINARY_DIR}/run_syn.py
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/syn.py
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Running synthesis flow"
+    EXCLUDE_FROM_ALL
+)

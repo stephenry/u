@@ -25,22 +25,16 @@
 ## POSSIBILITY OF SUCH DAMAGE.
 ##========================================================================== //
 
-cmake_minimum_required(VERSION 3.22)
-project(u)
-
-list(APPEND CMAKE_MODULE_PATH
- ${CMAKE_SOURCE_DIR}/rtl
- ${CMAKE_SOURCE_DIR}/cmake
- )
-
-include(FindVerilator)
-include(FindOpenSTA)
-include(FindSynlig)
-include(SetupPython)
-
-option(OPT_VCD_ENABLE "Enable Verilated module tracing" FALSE)
-
-enable_testing()
-add_subdirectory(py)
-add_subdirectory(tb)
-add_subdirectory(syn)
+find_package(Python3 REQUIRED)
+if (${Python3_FOUND})
+    set(U_VENV_ROOT ${CMAKE_BINARY_DIR}/.venv)
+    message(STATUS "Generating Virtual Environment at: ${S_VENV_ROOT}")
+    execute_process(COMMAND ${Python3_EXECUTABLE} -m venv ${U_VENV_ROOT})
+    execute_process(COMMAND ${U_VENV_ROOT}/bin/pip3 install
+        -r ${CMAKE_SOURCE_DIR}/py/requirements.txt)
+    set(U_PYTHON3 ${U_VENV_ROOT}/bin/python3)
+else ()
+    message(FATAL [[
+        "Python3 not found; RTL compilation not supported."
+    ]])
+endif ()

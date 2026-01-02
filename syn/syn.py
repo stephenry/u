@@ -25,22 +25,10 @@
 ## POSSIBILITY OF SUCH DAMAGE.
 ##========================================================================== //
 
-cmake_minimum_required(VERSION 3.22)
-project(u)
-
-list(APPEND CMAKE_MODULE_PATH
- ${CMAKE_SOURCE_DIR}/rtl
- ${CMAKE_SOURCE_DIR}/cmake
- )
-
-include(FindVerilator)
-include(FindOpenSTA)
-include(FindSynlig)
-include(SetupPython)
-
-option(OPT_VCD_ENABLE "Enable Verilated module tracing" FALSE)
-
-enable_testing()
-add_subdirectory(py)
-add_subdirectory(tb)
-add_subdirectory(syn)
+def run_synthesis_flow() -> int:
+    from cfg import OPENSTA_EXECUTABLE, SYNLIG_EXECUTABLE
+    
+    print("Running synthesis flow...")
+    print(f"Using OpenSTA executable at: {OPENSTA_EXECUTABLE}")
+    print(f"Using Synlig executable at: {SYNLIG_EXECUTABLE}")
+    return 0
