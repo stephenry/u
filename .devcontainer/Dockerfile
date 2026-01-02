@@ -80,6 +80,7 @@ RUN wget https://github.com/verilator/verilator/archive/refs/tags/v${VERILATOR_V
   && make \
   && cd .. \
   && rm -rf v${VERILATOR_VER}.tar.gz
+ENV VERILATOR_ROOT=/tools/verilator-${VERILATOR_VER}
 
 # Install Skywater 130nm PDK to user
 USER vscode

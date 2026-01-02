@@ -98,7 +98,7 @@ c_v #(
 
 if (P_ADMIT_COMPLIMENT_EN) begin : n_GEN
 
-c_cell #(
+c_v #(
   .W(W)
 , .P_IS_COMPLIMENT           (1'b1)
 ) u_c_cell(

@@ -67,7 +67,7 @@ assign project_x_w = i_x;
 
 // Input flops
 always_ff @(posedge clk) begin: in_reg_PROC
-  project_r <= project_w;
+  project_x_r <= project_x_w;
 end: in_reg_PROC
 
 // Project top-level
@@ -75,10 +75,10 @@ end: in_reg_PROC
     .W({{W}}), .P_ADMIT_COMPLIMENT_EN({{ADMIT_COMPLIMENT_EN}}))
   u_unary_detector (
 //
-  .i_x(project_x_r)
+  .i_x                  (project_x_r)
 //
-, .o_is_unary(project_is_unary_r)
-, .o_is_compliment(project_is_compliment_r)
+, .o_is_unary           (project_is_unary_r)
+, .o_is_compliment      (project_is_compliment_r)
 );
 
 // Output flops

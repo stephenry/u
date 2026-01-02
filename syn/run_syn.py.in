@@ -29,12 +29,113 @@
 ## ==================================================================== ##
 
 import sys
+import argparse
+import pathlib
 
 sys.path.extend([
     '@CMAKE_BINARY_DIR@/py',
     '@CMAKE_SOURCE_DIR@/syn',
 ])
 
+# Root of all RTL source files
+RTL_ROOT = '@CMAKE_SOURCE_DIR@/rtl'
+
+TOP_LEVEL_TEMPLATE = pathlib.Path('@CMAKE_CURRENT_SOURCE_DIR@/top.sv.tmpl')
+
+# Compile project sources
+
+projects = dict()
+projects['c'] = [
+    'c_v_cell.sv',
+    'c_v.sv',
+    'c.sv',
+]
+
+projects['e'] = [
+    'e_is_1hot.sv',
+    'e.sv',
+]
+
+projects['o'] = [
+    'o.sv',
+]
+
+projects['p'] = [
+    'p_is_1hot.sv',
+    'p.sv',
+]
+
+projects['u'] = [
+    'u_mask.sv'
+    'u.sv',
+]
+
+include_paths = [
+    f'{RTL_ROOT}',
+]
+
+# Fix up paths
+for k, v in projects.items():
+    projects[k] = [f"{RTL_ROOT}/{k}/{f}" for f in v]
+
+parser = argparse.ArgumentParser(
+    description='Run synthesis flow for U designs.'
+)
+
+parser.add_argument(
+    '--project',
+    type=str,
+    choices=['c', 'e', 'o', 'p', 'u', 'all'],
+    default='all',
+    help='Specify which project to synthesize (default: all).'
+)
+
+parser.add_argument(
+    '--sweep',
+    type=str,
+    help='Frequency sweep; lo,hi,inc'
+)
+
+parser.add_argument(
+    '--frequency',
+    type=str,
+    help='Clock frequency for synthesis (in MHz).'
+)
+
+args = parser.parse_args()
+
+if not args.sweep and not args.frequency:
+    print("Error: Must specify either --sweep or --frequency")
+    sys.exit(1)
+elif args.sweep and args.frequency:
+    print("Error: Cannot specify both --sweep and --frequency")
+    sys.exit(1)
+
+wls = []
+def add_project(k: str):
+    d = {
+        'name': k,
+        'sources': projects[k],
+        'include_paths': include_paths,
+    }
+
+    if args.sweep:
+        d['sweep'] = args.sweep
+    elif args.frequency:
+        d['frequency'] = args.frequency
+
+    wls.append(d)
+
+if args.project == 'all':
+    for k in projects.keys():
+        add_project(k)
+elif args.project in projects.keys():
+    add_project(args.project)
+else:
+    print(f"Unknown project: {args.project}")
+    sys.exit(1)
+
 if __name__ == '__main__':
     from syn import run_synthesis_flow
-    sys.exit(run_synthesis_flow())
+
+    sys.exit(run_synthesis_flow(wls, top=TOP_LEVEL_TEMPLATE))

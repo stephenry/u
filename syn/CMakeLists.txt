@@ -33,7 +33,8 @@ configure_file(
 
 add_custom_target(run_synthesis_flow
     COMMAND ${U_PYTHON3} ${CMAKE_CURRENT_BINARY_DIR}/run_syn.py
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/syn.py
+      --project c --frequency 100
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/syn.py
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Running synthesis flow"
     EXCLUDE_FROM_ALL
