@@ -28,8 +28,17 @@
 ## OF THE POSSIBILITY OF SUCH DAMAGE.
 ## ==================================================================== ##
 
+import pathlib
+
 # OpenSTA executable path
 OPENSTA_EXECUTABLE = '@OPENSTA_EXECUTABLE@'
 
 # Synlig executable path
 SYNLIG_EXECUTABLE = '@SYNLIG_EXECUTABLE@'
+
+_tech = 'sky130_fd_sc_hd'
+
+_corner = 'sky130_fd_sc_hd__ss_100C_1v60.lib'
+
+STDCELL_LIB_PATH = \
+  pathlib.Path.home() / '.volare/sky130A/libs.ref' / _tech / 'lib' / _corner

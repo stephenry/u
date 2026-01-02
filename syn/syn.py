@@ -62,13 +62,20 @@ class SynthesisFlow:
 
         # Run synlig
         self._render_synlig_script(run_root, freq, srcs)
-        if self._run_synlig(run_root) != 0:
+        ec, stdout = self._run_synlig(run_root)
+        print(stdout)
+        if ec != 0:
             pass
-
+        total_area, sequential_area = self._scan_synlig_output(stdout)
+ 
         # Run OpenSTA
+        self._render_sdc(run_root, freq)
         self._render_opensta_script(run_root, freq)
-        if self._run_opensta() != 0:
+        ec, stdout = self._run_opensta(run_root)
+        print(stdout)
+        if ec != 0:
             pass
+        passed = self._scan_opensta_output(stdout)
 
     def _render_toplevel(self, run_root: pathlib.Path) -> pathlib.Path:
         import jinja2
@@ -89,6 +96,8 @@ class SynthesisFlow:
         return top_level_out
 
     def _render_synlig_script(self, run_root: pathlib.Path, freq: int, srcs: list[str] = []):
+        from cfg import STDCELL_LIB_PATH
+
         with open(run_root / 'synlig.tcl', 'w') as f:
             f.write(f'# Synlig script\n')
             f.write(f'# Project: {self._worklist["name"]}\n')
@@ -108,32 +117,83 @@ class SynthesisFlow:
                 'flatten',
                 'proc',
                 'opt',
+                'dfflegalize',
                 'techmap',
+                f'dfflibmap -liberty {STDCELL_LIB_PATH}',
+                f'abc -liberty {STDCELL_LIB_PATH}',
                 'opt',
                 'opt_clean -purge',
                 'check',
-                'write_verilog -noattr -noexpr syn.v'
+                'write_verilog -noattr -noexpr syn.v',
+                f'stat -liberty {STDCELL_LIB_PATH}',
             ]
             f.write('\n'.join(cmds) + '\n')
 
+    def _render_sdc(self, run_root: pathlib.Path, freq: int):
+        with open(run_root / 'design.sdc', 'w') as f:
+            f.write(f'# SDC file\n')
+            f.write(f'# Project: {self._worklist["name"]}\n')
+            f.write(f'# Frequency: {freq} MHz\n')
+            period_ns = 1000 / freq
+            f.write(f'create_clock -name clk -period {period_ns:.3f} [get_ports clk]\n')
+
     def _render_opensta_script(self, run_root: pathlib.Path, freq: int):
+        from cfg import STDCELL_LIB_PATH
+
         with open(run_root / 'opensta.tcl', 'w') as f:
             f.write(f'# OpenSTA script\n')
             f.write(f'# Project: {self._worklist["name"]}\n')
             f.write(f'# Frequency: {freq} MHz\n')
-            # Additional script content would go here
+            cmds = [
+                f'read_liberty {STDCELL_LIB_PATH}',
+                f'read_verilog syn.v',
+                f'link_design top',
+                f'read_sdc design.sdc',
+                f'report_checks',
+            ]
+            f.write('\n'.join(cmds) + '\n')
 
     def _run_synlig(self, run_root: pathlib.Path) -> int:
         from cfg import SYNLIG_EXECUTABLE
 
-        import subprocess
-        return subprocess.call(
-            [SYNLIG_EXECUTABLE, '-s', 'synlig.tcl'], cwd=run_root)
+        from subprocess import Popen, PIPE
+        p = Popen([SYNLIG_EXECUTABLE, '-s', 'synlig.tcl'],
+            stdout=PIPE, stderr=PIPE, cwd=run_root)
+        output, err = p.communicate()
+        return (p.returncode, output.decode())
 
-    def _run_opensta(self) -> int:
-        pass
+    def _scan_synlig_output(self, stdout: str):
+        import re
 
+        total_area = None
+        sequential_area = None
 
+        for line in stdout.splitlines():
+            if m := re.search(r'Chip area for module \'\\top\': ([\d\.]+)', line):
+                total_area = m.group(1)
+            elif m := re.search(r'of which used for sequential elements: ([\d\.]+)', line):
+                sequential_area = m.group(1)
+
+        return (total_area, sequential_area)
+
+    def _run_opensta(self, run_root: pathlib.Path) -> int:
+        from cfg import OPENSTA_EXECUTABLE
+
+        from subprocess import Popen, PIPE
+        p = Popen([OPENSTA_EXECUTABLE, 'opensta.tcl'],
+            stdout=PIPE, stderr=PIPE, cwd=run_root)
+        output, err = p.communicate()
+        return p.returncode, output.decode()
+
+    def _scan_opensta_output(self, stdout: str):
+        import re
+
+        passed = True
+        for line in stdout.splitlines():
+            if re.search(r'slack \(VIOLATED\)', line):
+                passed = False
+
+        return passed
 
 def run_synthesis_flow(wls: list[dict], **kwargs) -> int:
     results = []
