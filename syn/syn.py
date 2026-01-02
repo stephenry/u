@@ -62,7 +62,7 @@ class SynthesisFlow:
 
         # Run synlig
         self._render_synlig_script(run_root, freq, srcs)
-        if self._run_synlig() != 0:
+        if self._run_synlig(run_root) != 0:
             pass
 
         # Run OpenSTA
@@ -94,21 +94,25 @@ class SynthesisFlow:
             f.write(f'# Project: {self._worklist["name"]}\n')
             f.write(f'# Frequency: {freq} MHz\n')
 
-            include_paths = [f'-I{inc}' for inc in self._worklist.get('include_paths', [])]
+            cmds = []
+ 
+            include_files = [
+                f'-I{include_path}' for include_path in self._worklist.get('include_paths', [])]
 
-            cmds = list()
             for src in srcs:
-                cmds.append(f'read_systemverilog {" ".join(include_paths)} -defer {src}')
+                cmds.append(f'read_systemverilog {" ".join(include_files)} -defer {src}')
 
             cmds += [
                 'read_systemverilog -link',
-                'hierarchy -top top',
+                'hierarchy -check -top top',
                 'flatten',
                 'proc',
                 'opt',
                 'techmap',
                 'opt',
-                'write_verilog syn.v'
+                'opt_clean -purge',
+                'check',
+                'write_verilog -noattr -noexpr syn.v'
             ]
             f.write('\n'.join(cmds) + '\n')
 
@@ -119,8 +123,12 @@ class SynthesisFlow:
             f.write(f'# Frequency: {freq} MHz\n')
             # Additional script content would go here
 
-    def _run_synlig(self) -> int:
-        pass
+    def _run_synlig(self, run_root: pathlib.Path) -> int:
+        from cfg import SYNLIG_EXECUTABLE
+
+        import subprocess
+        return subprocess.call(
+            [SYNLIG_EXECUTABLE, '-s', 'synlig.tcl'], cwd=run_root)
 
     def _run_opensta(self) -> int:
         pass

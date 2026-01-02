@@ -48,14 +48,14 @@ module top (
 //                                                                           //
 // ------------------------------------------------------------------------- //
 
-logic [{{W}} - 1:0]            project_x_w;
-logic [{{W}} - 1:0]            project_x_r;
+logic [{{W}} - 1:0]            unary_detector_x_w;
+logic [{{W}} - 1:0]            unary_detector_x_r;
 
-logic                          project_is_unary_w;
-logic                          project_is_unary_r;
+logic                          unary_detector_is_unary_w;
+logic                          unary_detector_is_unary_r;
 
-logic                          project_is_compliment_w;
-logic                          project_is_compliment_r;
+logic                          unary_detector_is_compliment_w;
+logic                          unary_detector_is_compliment_r;
 
 // ------------------------------------------------------------------------- //
 //                                                                           //
@@ -63,11 +63,11 @@ logic                          project_is_compliment_r;
 //                                                                           //
 // ------------------------------------------------------------------------- //
 
-assign project_x_w = i_x;
+assign unary_detector_x_w = i_x;
 
 // Input flops
 always_ff @(posedge clk) begin: in_reg_PROC
-  project_x_r <= project_x_w;
+  unary_detector_x_r <= unary_detector_x_w;
 end: in_reg_PROC
 
 // Project top-level
@@ -75,19 +75,19 @@ end: in_reg_PROC
     .W({{W}}), .P_ADMIT_COMPLIMENT_EN({{ADMIT_COMPLIMENT_EN}}))
   u_unary_detector (
 //
-  .i_x                  (project_x_r)
+  .i_x                  (unary_detector_x_r)
 //
-, .o_is_unary           (project_is_unary_r)
-, .o_is_compliment      (project_is_compliment_r)
+, .o_is_unary           (unary_detector_is_unary_w)
+, .o_is_compliment      (unary_detector_is_compliment_w)
 );
 
 // Output flops
 always_ff @(posedge clk) begin: out_reg_PROC
-  project_is_unary_r <= project_is_unary_w;
-  project_is_compliment_r <= project_is_compliment_w;
+  unary_detector_is_unary_r <= unary_detector_is_unary_w;
+  unary_detector_is_compliment_r <= unary_detector_is_compliment_w;
 end: out_reg_PROC
 
-assign o_is_unary = project_is_unary_r;
-assign o_is_compliment = project_is_compliment_r;
+assign o_is_unary = unary_detector_is_unary_r;
+assign o_is_compliment = unary_detector_is_compliment_r;
 
 endmodule: top
