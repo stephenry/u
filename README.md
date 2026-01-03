@@ -6,7 +6,22 @@ A collection of efficient circuits to determine if an arbitrary length input vec
 
 Unary (also called Thermometer) codes are common in logic design. The projects contained herein are an exploration of various unary-code detection strategies in logic. For the day-to-day logic designer, such circuits are too small to become relevant in a non-trivial design, but in the context of a small, portfolio piece they are interesting for a small weekend PPA exploration.
 
-## Detail
+## Unary Numbers
+
+A unary number represents a non-negative integer by repeating a single symbol (usually 1) that many times. The all-one code is disallowed.
+
+Examples (for a fixed vector width of 8b):
+
+`'d0 -> 'b00000000`  
+`'d1 -> 'b00000001`  
+`'d3 -> 'b00000111`  
+`'d5 -> 'b00011111`  
+`'d7 -> 'b01111111`  
+
+
+In hardware, unary ("thermometer") encodings aid priority detection and transition checking via contiguous runs.
+
+## Realizations
 
 #### (U) Mask-Based [u.sv](./rtl/u/u.sv):
 
