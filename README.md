@@ -38,7 +38,7 @@ Admit an input vector if its increment does not overlap with the original value.
 
 Unary codes are a unique encoding where the carry-out is at the first zero bit in the input vector. This is the canonical solution to the unary detection problem.
 
-## Physical
+## Physical Analysis
 
 PPA characteristics of each project are presented below (where each entry is a 2-tuple representing post-synthesis cell-area in um^2, and maximum clock frequency in MHz).
 
