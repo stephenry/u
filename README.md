@@ -50,7 +50,7 @@ PPA characteristics of each project are presented below (where each entry is a 2
 | p | (31.28, 400)| (90.09, 400)| (250.24, 280)| (805.77, 100)| (1966.89, 40)| (4136.47, <40)|
 | u | (31.28, 400)| (95.09, 400)| (280.27, 380)| (761.98, 200)| (1946.87, 160)| (4078.91, 100)|
 
-All projects attain similar PPA for small widths, but soon diverge soon thereafter. 'o' appears optimal overall in term of frequency and area but is unable to reach high clock frequencies for high W. 'e' appears invariant to high W, but does so with a non-trivial area. 'c' operates serialially and, as predicted, does not scale to high W. 
+All projects attain similar PPA for small widths, but soon diverge soon thereafter. 'o' appears optimal overall in term of frequency and area but is unable to reach high clock frequencies for high W. 'e' appears invariant to high W, but does so with a non-trivial area. 'c' operates serially and, as predicted, does not scale to high W. 
 
 ### Methodology
 Individual projects were synthesized to netlist using Yosys/Synlig Open Source synthesis tools. Resultant netlist was analyzed using OpenSTA to determine the minimum clock frequency with > 0 TNS. The High-Density SkyWater 130nm PDK was used (sky130_fd_sc_hd) at a 100C/1.60v corner. Neither OpenSTA nor SkyWater support Wire-Load Models therefore timing analysis was done in the absence of net-delays. As a projects are fully-combinatorial, a common top-level was created to flop-bound the design. The area due to the synchronous cells (common to all projects) was then deducted from the overall cell area figure. No attempt has been made to verify logical equivalency between RTL and synthesized netlists.
