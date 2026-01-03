@@ -42,6 +42,12 @@ Unary codes are a unique encoding where the carry-out is at the first zero bit i
 
 PPA characteristics of each project are presented below (where each entry is a 2-tuple representing post-synthesis cell-area in um^2, and maximum clock frequency in MHz).
 
+### Graph
+
+![Area/Frequency vs. W](./syn/ppa_separate.png)
+
+### Tablulation
+
 | Project | W=4 | W=8 | W=16 | W=32 | W=64 | W=128 | Notes |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 | c (serial) | (31.28, 400)| (83.83, 400)| (291.53, 240)| (571.80, 100)| (1206.16, 40)| (2544.94, <40)| Linear, worst |
