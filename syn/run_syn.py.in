@@ -111,16 +111,34 @@ def report_results(f):
     # Title
     title = [ 'Project' ]
     title.extend([ f'W={w}' for w in args['w_sweep'] ])
+    title.append('Notes')
     f.write(f"| {' | '.join(title)} |\n")
 
     # Justification
     justify = [ ':---:' for _ in title ]
     f.write(f"| {' | '.join(justify)} |\n")
 
+    project_to_desc_map = {
+        'c': 'serial',
+        'e': 'edge',
+        'o': 'optimal',
+        'p': 'inc',
+        'u': 'mask',
+    }
+
+    project_to_notes_map = {
+        'c': 'Linear, worst',
+        'e': 'Sub-Linear (best overall?)',
+        'o': 'Expected Winner',
+        'p': 'Good Area, Timing Risk',
+        'u': 'High area growth',
+    }
+
     for project, s1 in results.items():
-        f.write(f'| {project} ')
+        f.write(f'| {project} ({project_to_desc_map.get(project, "")}) ')
         for w, r in s1.items():
             f.write(f'| ({r})')
+        f.write(f'| {project_to_notes_map.get(project, "")} ')
         f.write('|\n')
 
 with open('syn_results.txt', 'w') as f:
