@@ -38,6 +38,15 @@ Admit an input vector if its increment does not overlap with the original value.
 
 Unary codes are a unique encoding where the carry-out is at the first zero bit in the input vector. This is the canonical solution to the unary detection problem.
 
+## Physical
+
+| Project | W=4 | W=8 | W=16 | W=32 | W=64 | W=128 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+|  c | 0 |0 |0 |0 |0 |0 |
+
+
+
+
 ## Instructions
 
 The [Dockerfile](./.devcontainer/Dockerfile) is the recommended development environment for 'u'. Alternatively, 'u' can be built standalone using a recent version of Verilator (developed using v5.034). In this case, an additional environment variable 'VERILATOR_ROOT' pointing to the root of a Verilator installation is required. 
