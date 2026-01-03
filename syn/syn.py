@@ -33,7 +33,6 @@ class SynligRunner:
         self._path = kwargs.get('path')
         self._project = kwargs.get('project')
         self._w = kwargs.get('w')
-        self._frequency = kwargs.get('frequency')
         self._sources = kwargs.get('sources', [])
         self._include_paths = kwargs.get('include_paths', [])
         self._syn_v = kwargs.get('syn_v', 'syn.v')
@@ -80,7 +79,6 @@ class SynligRunner:
         with open(self._path / self._script_tcl, 'w') as f:
             f.write(f'# Synlig script\n')
             f.write(f'# Project: {self._project}\n')
-            f.write(f'# Frequency: {self._frequency} MHz\n')
 
             cmds = []
  
@@ -203,19 +201,20 @@ class OpenSTARunner:
 class InstanceRunner:
     def __init__(self, **kwargs):
         self._project = kwargs.get('project')
-        self._frequency = kwargs.get('frequency', [])
+        self._frequency_sweep = kwargs.get('frequency_sweep', [])
         self._w = kwargs.get('w', [])
         self._top_level_template = kwargs.get('top_level_template')
         self._sources = kwargs.get('sources', [])
         self._include_paths = kwargs.get('include_paths', [])
-        self._instance_name = f'{self._project}_W{self._w}_{self._frequency}MHz'
+        self._instance_name = f'{self._project}_W{self._w}'
         self._instance_path = pathlib.Path(self._instance_name)
         self._instance_path.mkdir(exist_ok=True)
         self._echo = kwargs.get('echo', False)
 
         self._script_tcl = 'synlig.tcl'
         self._sr = None
-        self._or = None
+        self._f_max = None
+        self._f_min = None
 
     def run(self):
         print(f'Running instance: {self._instance_name}')
@@ -227,7 +226,6 @@ class InstanceRunner:
             'project': self._project,
             'path': self._instance_path,
             'w': self._w,
-            'frequency': self._frequency,
             'sources': self._sources,
             'include_paths': self._include_paths,
             'top_level_template': self._top_level_template,
@@ -236,21 +234,28 @@ class InstanceRunner:
         self._sr = SynligRunner(**args)
         self._sr.run()
 
-        args = {
-            'syn_v': syn_v,
-            'project': self._project,
-            'path': self._instance_path,
-            'frequency': self._frequency,
-            'echo': self._echo,
-        }
-        self._or = OpenSTARunner(**args)
-        self._or.run()
+        for frequency in self._frequency_sweep:
+            args = {
+                'syn_v': syn_v,
+                'project': self._project,
+                'path': self._instance_path,
+                'frequency': frequency,
+                'echo': self._echo,
+            }
+            orr = OpenSTARunner(**args)
+            orr.run()
+            if not self._f_min:
+                self._f_min = frequency
+            if not orr.passed():
+                break
+            self._f_max = frequency
 
     def results(self) -> dict:
         class Result:
-            def __init__(self, sr: SynligRunner, or_: OpenSTARunner):
+            def __init__(self, sr: SynligRunner, f_max: int, f_min: int):
                 self._sr = sr
-                self._or = or_
+                self._f_max = f_max
+                self._f_min = f_min
 
             def total_area(self) -> float:
                 return self._sr.area()[0]
@@ -258,17 +263,18 @@ class InstanceRunner:
             def sequential_area(self) -> float:
                 return self._sr.area()[1]
 
-            def timing_passed(self) -> bool:
-                return self._or.passed()
+            def f_max(self) -> int:
+                return self._f_max
+
+            def f_min(self) -> int:
+                return self._f_min
 
             def __str__(self) -> str:
                 ta, sa = self._sr.area()
-                tp = self._or.passed()
-                return (f'Total Area: {ta:0.2f}, '
-                        f'Sequential Area: {sa:0.2f}, Combinatorial Area: {ta - sa:0.2f} '
-                        f'Timing Passed: {tp}')
+                f = f'<{self._f_min}' if self._f_max is None else f'{self._f_max}'
+                return (f'{ta - sa:0.2f}, {f}')
 
-        return Result(self._sr, self._or)
+        return Result(self._sr, self._f_max, self._f_min)
 
 class ProjectRunner:
     def __init__(self, **kwargs):
@@ -284,18 +290,17 @@ class ProjectRunner:
     def run(self):
         for w in self._w_sweep:
             self._results[w] = {}
-            for f in self._frequency_sweep:
-                ir = InstanceRunner(
-                    project=self._project,
-                    frequency=f,
-                    w=w,
-                    sources=self._sources,
-                    include_paths=self._include_paths,
-                    top_level_template=self._top_level_template,
-                    echo=self._echo,
-                )
-                ir.run()
-                self._results[w][f] = ir.results()
+            ir = InstanceRunner(
+                project=self._project,
+                frequency_sweep=self._frequency_sweep,
+                w=w,
+                sources=self._sources,
+                include_paths=self._include_paths,
+                top_level_template=self._top_level_template,
+                echo=self._echo,
+            )
+            ir.run()
+            self._results[w] = ir.results()
 
     def results(self) -> list:
         return self._results

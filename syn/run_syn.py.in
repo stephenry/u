@@ -84,10 +84,10 @@ for k, v in projects.items():
 
 args = {
     # W(idth) Parameter sweep.
-    'w_sweep': [16, 32],
+    'w_sweep': [4, 8, 16, 32, 64, 128],
 
     # Clock frequency sweep.
-    'frequency_sweep': range(100, 300, 50),
+    'frequency_sweep': range(40, 420, 20),
 
     # Projects to evaluate
     'projects': projects,
@@ -108,11 +108,20 @@ results = run_synthesis_flow(**args)
 
 
 def report_results(f):
+    # Title
+    title = [ 'Project' ]
+    title.extend([ f'W={w}' for w in args['w_sweep'] ])
+    f.write(f"| {' | '.join(title)} |\n")
+
+    # Justification
+    justify = [ ':---:' for _ in title ]
+    f.write(f"| {' | '.join(justify)} |\n")
+
     for project, s1 in results.items():
-        f.write(f'Project: {project}:\n')
-        for w, s2 in s1.items():
-            for frequency, r in s2.items():
-                f.write(f'  W={w} F={frequency}MHz: {r}\n')
+        f.write(f'| {project} ')
+        for w, r in s1.items():
+            f.write(f'| ({r})')
+        f.write('|\n')
 
 with open('syn_results.txt', 'w') as f:
     report_results(f)
