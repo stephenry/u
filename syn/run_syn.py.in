@@ -39,6 +39,8 @@ sys.path.extend([
 # Root of all RTL source files
 RTL_ROOT = '@CMAKE_SOURCE_DIR@/rtl'
 
+SYN_ROOT = '@CMAKE_SOURCE_DIR@/syn'
+
 TOP_LEVEL_TEMPLATE = pathlib.Path('@CMAKE_CURRENT_SOURCE_DIR@/top.sv.tmpl')
 
 # Compile project sources
@@ -141,5 +143,45 @@ def report_results(f):
         f.write(f'| {project_to_notes_map.get(project, "")} ')
         f.write('|\n')
 
-with open('syn_results.txt', 'w') as f:
+ # Emit Markdown Table of Results
+with open(f"{SYN_ROOT}/syn_results.md", 'w') as f:
     report_results(f)
+
+ # Graph Results
+
+import matplotlib.pyplot as plt
+
+# Data from your table (area in µm²)
+widths = args['w_sweep']
+
+area = {}
+frequency = {}
+for project, s1 in results.items():
+    area[project] = []
+    frequency[project] = []
+    for w, r in s1.items():
+        area[project].append(r.combinatorial_area())
+        frequency[project].append(r.f_max())
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+
+for label, areas in area.items():
+    ax1.plot(widths, areas, marker='o', label=label)
+ax1.set_ylabel('Cell Area (µm²)')
+ax1.grid(True, ls="--", alpha=0.7)
+ax1.legend(ncol=2)
+
+for label, f_maxs in frequency.items():
+    ax2.plot(widths, f_maxs, marker='s', label=label)
+ax2.set_xlabel('Width (W)')
+ax2.set_ylabel('Max Frequency (MHz)')
+ax2.grid(True, ls="--", alpha=0.7)
+ax2.set_xscale('log', base=2)
+ax2.set_xticks(widths)
+ax2.set_xticklabels(widths)
+
+plt.suptitle('PPA Comparison vs. Vector Width (Sky130 HD, Slow Corner)')
+plt.tight_layout()
+plt.savefig('ppa_separate.png', dpi=300)
+import shutil
+shutil.move('ppa_separate.png', SYN_ROOT + '/ppa_separate.png')

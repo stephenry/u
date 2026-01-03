@@ -263,6 +263,10 @@ class InstanceRunner:
             def sequential_area(self) -> float:
                 return self._sr.area()[1]
 
+            def combinatorial_area(self) -> float:
+                ta, sa = self._sr.area()
+                return ta - sa
+
             def f_max(self) -> int:
                 return self._f_max
 
