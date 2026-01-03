@@ -3,6 +3,10 @@
     "files.associations": {
         "sstream": "cpp",
         "memory": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "*.py.in": "python"
+    },
+    "search.exclude": {
+        "**/build/**": true
     }
 }

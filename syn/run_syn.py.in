@@ -29,7 +29,6 @@
 ## ==================================================================== ##
 
 import sys
-import argparse
 import pathlib
 
 sys.path.extend([
@@ -45,97 +44,75 @@ TOP_LEVEL_TEMPLATE = pathlib.Path('@CMAKE_CURRENT_SOURCE_DIR@/top.sv.tmpl')
 # Compile project sources
 
 projects = dict()
+
+# 'C'-Project
 projects['c'] = [
     'c_v_cell.sv',
     'c_v.sv',
     'c.sv',
 ]
 
+# 'E'-Project
 projects['e'] = [
     'e_is_1hot.sv',
     'e.sv',
 ]
 
+# 'O'-Project
 projects['o'] = [
     'o.sv',
 ]
 
+# 'P'-Project
 projects['p'] = [
     'p_is_1hot.sv',
     'p.sv',
 ]
 
+# 'U'-Project
 projects['u'] = [
     'u_mask.sv',
     'u.sv',
 ]
 
-include_paths = [
-    f'{RTL_ROOT}',
-]
+
 
 # Fix up paths
 for k, v in projects.items():
     projects[k] = [f"{RTL_ROOT}/{k}/{f}" for f in v]
 
-parser = argparse.ArgumentParser(
-    description='Run synthesis flow for U designs.'
-)
 
-parser.add_argument(
-    '--project',
-    type=str,
-    choices=['c', 'e', 'o', 'p', 'u', 'all'],
-    default='all',
-    help='Specify which project to synthesize (default: all).'
-)
+args = {
+    # W(idth) Parameter sweep.
+    'w_sweep': [16, 32],
 
-parser.add_argument(
-    '--sweep',
-    type=str,
-    help='Frequency sweep; lo,hi,inc'
-)
+    # Clock frequency sweep.
+    'frequency_sweep': range(100, 300, 50),
 
-parser.add_argument(
-    '--frequency',
-    type=str,
-    help='Clock frequency for synthesis (in MHz).'
-)
+    # Projects to evaluate
+    'projects': projects,
 
-args = parser.parse_args()
+    # RTL include paths
+    'include_paths': [
+        RTL_ROOT,
+    ],
 
-if not args.sweep and not args.frequency:
-    print("Error: Must specify either --sweep or --frequency")
-    sys.exit(1)
-elif args.sweep and args.frequency:
-    print("Error: Cannot specify both --sweep and --frequency")
-    sys.exit(1)
+    # RTL Top-level template
+    'top_level_template': TOP_LEVEL_TEMPLATE,
 
-wls = []
-def add_project(k: str):
-    d = {
-        'name': k,
-        'sources': projects[k],
-        'include_paths': include_paths,
-    }
+    'echo': False,
+}
 
-    if args.sweep:
-        d['sweep'] = args.sweep
-    elif args.frequency:
-        d['frequency'] = args.frequency
+from syn import run_synthesis_flow
+results = run_synthesis_flow(**args)
 
-    wls.append(d)
 
-if args.project == 'all':
-    for k in projects.keys():
-        add_project(k)
-elif args.project in projects.keys():
-    add_project(args.project)
-else:
-    print(f"Unknown project: {args.project}")
-    sys.exit(1)
+def report_results(f):
+    for project, s1 in results.items():
+        f.write(f'Project: {project}:\n')
+        for w, s2 in s1.items():
+            for frequency, r in s2.items():
+                f.write(f'  W={w} F={frequency}MHz: {r}\n')
 
-if __name__ == '__main__':
-    from syn import run_synthesis_flow
-
-    sys.exit(run_synthesis_flow(wls, top=TOP_LEVEL_TEMPLATE))
+with open('syn_results.txt', 'w') as f:
+    report_results(f)
