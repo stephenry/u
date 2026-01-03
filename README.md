@@ -42,15 +42,15 @@ Unary codes are a unique encoding where the carry-out is at the first zero bit i
 
 PPA characteristics of each project are presented below (where each entry is a 2-tuple representing post-synthesis cell-area in um^2, and maximum clock frequency in MHz).
 
-| Project | W=4 | W=8 | W=16 | W=32 | W=64 | W=128 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| c | (31.28, 400)| (83.83, 400)| (291.53, 240)| (571.80, 100)| (1206.16, 40)| (2544.94, <40)|
-| e | (31.28, 400)| (106.35, 400)| (340.33, 300)| (802.02, 280)| (1620.30, 240)| (3219.34, 180)|
-| o | (23.77, 400)| (45.04, 400)| (100.10, 400)| (253.99, 340)| (511.74, 220)| (1154.86, 80)|
-| p | (31.28, 400)| (90.09, 400)| (250.24, 280)| (805.77, 100)| (1966.89, 40)| (4136.47, <40)|
-| u | (31.28, 400)| (95.09, 400)| (280.27, 380)| (761.98, 200)| (1946.87, 160)| (4078.91, 100)|
+| Project | W=4 | W=8 | W=16 | W=32 | W=64 | W=128 | Notes |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| c (serial) | (31.28, 400)| (83.83, 400)| (291.53, 240)| (571.80, 100)| (1206.16, 40)| (2544.94, <40)| Linear, worst |
+| e (edge) | (31.28, 400)| (106.35, 400)| (340.33, 300)| (802.02, 280)| (1620.30, 240)| (3219.34, 180)| Sub-Linear (best overall?) |
+| o (optimal) | (23.77, 400)| (45.04, 400)| (100.10, 400)| (253.99, 340)| (511.74, 220)| (1154.86, 80)| Expected Winner |
+| p (inc) | (31.28, 400)| (90.09, 400)| (250.24, 280)| (805.77, 100)| (1966.89, 40)| (4136.47, <40)| Good Area, Timing Risk |
+| u (mask) | (31.28, 400)| (95.09, 400)| (280.27, 380)| (761.98, 200)| (1946.87, 160)| (4078.91, 100)| High area growth |
 
-All projects attain similar PPA for small widths, but soon diverge soon thereafter. 'o' appears optimal overall in term of frequency and area but is unable to reach high clock frequencies for high W. 'e' appears invariant to high W, but does so with a non-trivial area. 'c' operates serially and, as predicted, does not scale to high W. 
+All projects attain similar PPA for small widths, but soon diverge soon thereafter. 'o' appears optimal overall in term of frequency and area but is unable to reach high clock frequencies for high W. 'e' appears invariant to high W, but does so with a non-trivial area. 'c' operates serially and, as predicted, does not scale to high W. The above figures and associated table can be re-rendered by running the run_synthesis_flow target.
 
 ### Methodology
 Individual projects were synthesized to netlist using Yosys/Synlig Open Source synthesis tools. Resultant netlist was analyzed using OpenSTA to determine the minimum clock frequency with > 0 TNS. The High-Density SkyWater 130nm PDK was used (sky130_fd_sc_hd) at a 100C/1.60v corner. Neither OpenSTA nor SkyWater support Wire-Load Models therefore timing analysis was done in the absence of net-delays. As a projects are fully-combinatorial, a common top-level was created to flop-bound the design. The area due to the synchronous cells (common to all projects) was then deducted from the overall cell area figure. No attempt has been made to verify logical equivalency between RTL and synthesized netlists.
