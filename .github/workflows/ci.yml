@@ -4,7 +4,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: 
-      image: dev
+      image: main
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
