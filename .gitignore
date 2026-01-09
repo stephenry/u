@@ -1,4 +1,4 @@
-build
+build-*
 *~
 slpp_all
 __pycache__
