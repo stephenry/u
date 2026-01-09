@@ -11,6 +11,7 @@ jobs:
       packages: read
     container:
       image: ghcr.io/${{ github.repository }}/devcontainer:latest
+      options: --user root
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
