@@ -23,5 +23,5 @@ jobs:
           PIP_ROOT_USER_ACTION: ignore
         run: |
           cmake . --preset w32
-          cmake --build build_w32 -t tb
-          ctest --test-dir build_w32
+          cmake --build build-w32 -t tb
+          ctest --test-dir build-w32
