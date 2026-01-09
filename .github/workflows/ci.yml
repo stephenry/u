@@ -1,13 +1,15 @@
 name: CI
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: 
-      image: main
+    container:
+      image: ghcr.io/${{ github.repository }}/devcontainer:latest
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.github_token }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - uses: actions/checkout@v4
       - name: test_w32
@@ -15,4 +17,3 @@ jobs:
           cmake . --preset w32
           cmake --build build_w32 -t tb
           ctest --test-dir build_w32
-
